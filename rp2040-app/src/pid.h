@@ -9,7 +9,7 @@ class pid {
 
 protected:
     void update_target();
-    
+
 public:
     pid(float target, float kp, float kd, float ki);
     float compute(float actual);
