@@ -13,29 +13,26 @@
         compatible = "gpio-leds";
         led0: led_0 {
             gpios = <&gpio0 16 GPIO_ACTIVE_HIGH>;
-            label = "LED";
         };
 
-        // led1: led_1 {
-        //     gpios = <&gpio0 17 GPIO_ACTIVE_HIGH>;
-        //     label = "LED";
-        // };
+        led1: led_1 {
+            gpios = <&gpio0 17 GPIO_ACTIVE_HIGH>;
+        };
 
-        // led2: led_2 {
-        //     gpios = <&gpio0 18 GPIO_ACTIVE_HIGH>;
-        //     label = "LED";
-        // };
+        led2: led_2 {
+            gpios = <&gpio0 18 GPIO_ACTIVE_HIGH>;
+        };
 
-        // led3: led_3 {
-        //     gpios = <&gpio0 19 GPIO_ACTIVE_HIGH>;
-        //     label = "LED";
-        // };
+        led3: led_3 {
+            gpios = <&gpio0 19 GPIO_ACTIVE_HIGH>;
+        };
     };
 
     pwmleds {
         compatible = "pwm-leds";
+        status = "okay";
         pwm_led0: pwm_led_0 {
-            pwms = <&pwm 9 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
+            pwms = <&pwm 6 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
         };
     };
 
@@ -43,8 +40,8 @@
     aliases {
         pwm-led0 = &pwm_led0;
         load-overcurrent-led = &led0;
-        // batt-overcurrent-led = &led1;
-        // batt-overvoltage-led = &led2;
-        // batt-overtemp-led = &led3;
+        batt-overcurrent-led = &led1;
+        batt-overvoltage-led = &led2;
+        batt-overtemp-led = &led3;
     };
 };
