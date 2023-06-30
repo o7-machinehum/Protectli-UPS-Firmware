@@ -1,0 +1,50 @@
+/*
+ * Copyright (c) 2021 Yonatan Schachter
+ *
+ * SPDX-License-Identifier: Apache-2.0
+ */
+
+/dts-v1/;
+
+#include "pl02_rp2040-common.dtsi"
+
+/ {
+    leds {
+        compatible = "gpio-leds";
+        led0: led_0 {
+            gpios = <&gpio0 16 GPIO_ACTIVE_HIGH>;
+            label = "LED";
+        };
+
+        // led1: led_1 {
+        //     gpios = <&gpio0 17 GPIO_ACTIVE_HIGH>;
+        //     label = "LED";
+        // };
+
+        // led2: led_2 {
+        //     gpios = <&gpio0 18 GPIO_ACTIVE_HIGH>;
+        //     label = "LED";
+        // };
+
+        // led3: led_3 {
+        //     gpios = <&gpio0 19 GPIO_ACTIVE_HIGH>;
+        //     label = "LED";
+        // };
+    };
+
+    pwmleds {
+        compatible = "pwm-leds";
+        pwm_led0: pwm_led_0 {
+            pwms = <&pwm 9 PWM_MSEC(20) PWM_POLARITY_NORMAL>;
+        };
+    };
+
+
+    aliases {
+        pwm-led0 = &pwm_led0;
+        load-overcurrent-led = &led0;
+        // batt-overcurrent-led = &led1;
+        // batt-overvoltage-led = &led2;
+        // batt-overtemp-led = &led3;
+    };
+};

@@ -3,8 +3,9 @@
 #
 # This CMake file is picked by the Zephyr build system because it is defined
 # as the module CMake entry point (see zephyr/module.yml).
+set(BOARD_ROOT .)
 
-zephyr_include_directories(include)
-
-add_subdirectory(drivers)
-add_subdirectory(lib)
+zephyr_include_directories(
+    include,
+    rp2040-app,
+    esp32-app)
