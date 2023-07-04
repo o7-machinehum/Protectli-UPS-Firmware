@@ -1,6 +1,6 @@
 #define MAX_DRIVE 10000.0
 
-class pid {
+class Pid {
     float target;
     float kp, ki, kd;
     float e, e_prev;
@@ -11,7 +11,7 @@ protected:
     void update_target();
 
 public:
-    pid(float target, float kp, float kd, float ki);
+    Pid(float target, float kp, float kd, float ki);
     float compute(float actual);
 
     void update_target(float t) {

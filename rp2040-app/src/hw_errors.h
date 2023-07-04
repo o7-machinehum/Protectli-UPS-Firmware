@@ -1,4 +1,12 @@
-class hw_errors {
+class HwErrors{
+    struct {
+        bool load_oc;
+        bool batt_oc;
+        bool batt_ov;
+        bool batt_ot;
+    } errorCodes;
+
 public:
-    hw_errors();
+    HwErrors();
+    uint8_t errors();
 };
