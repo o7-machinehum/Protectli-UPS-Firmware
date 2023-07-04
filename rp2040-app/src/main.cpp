@@ -5,12 +5,12 @@
 
 #include "hw_errors.h"
 #include "pid.h"
+#include "adc.h"
 // #include "buck.h"
 
 #define PERIOD PWM_USEC(2) // 500Khz
 
 static const struct pwm_dt_spec buck = PWM_DT_SPEC_GET(DT_ALIAS(pwm_buck));
-
 
 int main(void)
 {
@@ -20,12 +20,18 @@ int main(void)
 
     HwErrors hw_errors;
     Pid pid0(12.0, 1.0, 0.0, 0.0);
+    Adc adc;
+    adc.read(0);
+    adc.read(1);
+    adc.read(2);
+    adc.read(3);
 
     if (!device_is_ready(buck.dev)) {
 		printk("Error: PWM device %s is not ready\n",
 		       buck.dev->name);
 		return 0;
 	}
+
 
     // Main PID Loop
     while(true) {

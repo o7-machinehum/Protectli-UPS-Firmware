@@ -54,6 +54,9 @@
         };
     };
 
+    zephyr,user {
+		io-channels = <&adc 0>, <&adc 1>, <&adc 2>, <&adc 3>;
+	};
 
     aliases {
         pwm-buck= &pwm_buck;
@@ -66,4 +69,41 @@
 
 &pwm {
     status = "okay";
+};
+
+&adc {
+	#address-cells = <1>;
+	#size-cells = <0>;
+
+	channel@0 {
+		reg = <0>;
+		zephyr,gain = "ADC_GAIN_1";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,resolution = <12>;
+	};
+
+    channel@1 {
+		reg = <1>;
+		zephyr,gain = "ADC_GAIN_1";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,resolution = <12>;
+	};
+
+    channel@2 {
+		reg = <2>;
+		zephyr,gain = "ADC_GAIN_1";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,resolution = <12>;
+	};
+
+    channel@3 {
+		reg = <3>;
+		zephyr,gain = "ADC_GAIN_1";
+		zephyr,reference = "ADC_REF_INTERNAL";
+		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+		zephyr,resolution = <12>;
+	};
 };
