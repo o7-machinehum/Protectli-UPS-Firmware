@@ -18,8 +18,8 @@
         zephyr,sram = &sram0;
         zephyr,flash = &flash0;
         zephyr,flash-controller = &ssi;
-        zephyr,console = &uart0;
-        zephyr,shell-uart = &uart0;
+        zephyr,console = &uart1;
+        zephyr,shell-uart = &uart1;
         zephyr,code-partition = &code_partition;
     };
 
@@ -65,6 +65,13 @@
     current-speed = <115200>;
     status = "okay";
     pinctrl-0 = <&uart0_default>;
+    pinctrl-names = "default";
+};
+
+&uart1 {
+    current-speed = <115200>;
+    status = "okay";
+    pinctrl-0 = <&uart1_default>;
     pinctrl-names = "default";
 };
 

@@ -16,28 +16,32 @@ int main(void)
 {
     int ret;
 
+	printk("Protectli UPS\n");
+
     HwErrors hw_errors;
     Pid pid0(12.0, 1.0, 0.0, 0.0);
 
-    if (ret < 0) {
-			return 0;
+    if (!device_is_ready(buck.dev)) {
+		printk("Error: PWM device %s is not ready\n",
+		       buck.dev->name);
+		return 0;
 	}
 
     // Main PID Loop
     while(true) {
+        ret = hw_errors.errors();
 
-        if(!hw_errors.errors()) {
-            pwm_set_dt(&buck, PERIOD, PERIOD);
+        if(!ret) {
+            pwm_set_dt(&buck, PERIOD, PERIOD*0.5);
             // pwm_set_dt(&buck, PERIOD, PERIOD * pid0.get_duc());
 
         }
-
         else {
-            // pwm_set_dt(&buck, PERIOD, 0);
-
+            pwm_set_dt(&buck, PERIOD, 0);
+            printk("UPS In Error State: %d\n", ret);
+		    k_sleep(K_SECONDS(1U));
         }
 
-		k_sleep(K_SECONDS(4U));
     }
 
 	return 0;

@@ -47,6 +47,7 @@ HwErrors::HwErrors() {
 uint8_t HwErrors::errors(void) {
     memset(&errorCodes, 0x00, sizeof(errorCodes));
     uint8_t ret = 0x00;
+    static uint8_t last_ret;
 
     /* Load Overcurrent */
     errorCodes.load_oc = gpio_pin_get_dt(&load_oc);
@@ -67,6 +68,11 @@ uint8_t HwErrors::errors(void) {
     errorCodes.batt_ot = gpio_pin_get_dt(&batt_ot);
     gpio_pin_set_dt(&batt_ot_led, errorCodes.batt_ot);
     ret = errorCodes.batt_ot << 3;
+
+    if(last_ret != ret)
+        printk("New Errorlevel: %d", ret);
+
+    last_ret = ret;
 
     return ret;
 }
