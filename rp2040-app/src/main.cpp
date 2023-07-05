@@ -15,11 +15,13 @@ static const struct pwm_dt_spec buck = PWM_DT_SPEC_GET(DT_ALIAS(pwm_buck));
 int main(void)
 {
     int ret;
+    float drive;
+    float actual;
 
 	printk("~~~ Protectli UPS ~~~\n");
 
     HwErrors hw_errors;
-    Pid pid0(12.0, 1.0, 0.0, 0.0);
+    Pid pid0(12.0, 2, 0.03, 0.0);
 
     Adc adc;
 
@@ -36,12 +38,20 @@ int main(void)
 
 
     // Main PID Loop
+    pwm_set_dt(&buck, PERIOD, PERIOD*0.5);
     while(true) {
         ret = hw_errors.errors();
 
         if(!ret) {
-            pwm_set_dt(&buck, PERIOD, PERIOD*0.5);
-            // pwm_set_dt(&buck, PERIOD, PERIOD * pid0.get_duc());
+            actual =  adc.read_vout();
+            actual = actual / 1000;
+            pid0.compute(actual);
+            drive = pid0.get_duc();
+            // printk("%f\n", drive);
+            if(drive < 0)
+                drive = 0;
+
+            pwm_set_dt(&buck, PERIOD, PERIOD * drive);
 
         }
         else {
