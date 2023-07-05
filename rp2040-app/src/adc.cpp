@@ -15,11 +15,10 @@ static const struct adc_dt_spec adc_channels[] = {
                  DT_SPEC_AND_COMMA)
 };
 
-Adc::Adc(float *scales)
+Adc::Adc()
 : num_chan(ARRAY_SIZE(adc_channels))
 {
     int err;
-    v_scales = new float[ARRAY_SIZE(adc_channels)]();
 
     sequence = {
         .buffer = &buf,
@@ -29,7 +28,6 @@ Adc::Adc(float *scales)
 
     /* Configure channels individually prior to sampling. */
     for (size_t i = 0U; i < ARRAY_SIZE(adc_channels); i++) {
-        v_scales[i] = scales[i];
         if (!device_is_ready(adc_channels[i].dev)) {
             printk("ADC controller device %s not ready\n", adc_channels[i].dev->name);
         }
@@ -73,16 +71,16 @@ int Adc::read(uint8_t i) {
     err = adc_raw_to_millivolts_dt(&adc_channels[i],
         &val_mv);
 
-    return val_mv * v_scales[i];
+    return val_mv;
 
 }
 
 int Adc::read_vout() {
-    return read(0);
+    return read(0) * 5.1666;
 }
 
 int Adc::read_vbat() {
-    return read(1);
+    return read(1) * 14.6612;
 }
 
 int Adc::read_iout() {

@@ -4,11 +4,10 @@ class Adc {
     struct adc_sequence sequence;
     uint16_t buf;
     uint8_t num_chan;
-    float *v_scales;
     bool check_chan(uint8_t ch);
 
 public:
-    Adc(float *scales);
+    Adc();
     int read(uint8_t chan);
 
     int read_vout();

@@ -21,8 +21,7 @@ int main(void)
     HwErrors hw_errors;
     Pid pid0(12.0, 1.0, 0.0, 0.0);
 
-    float scales[4] = {5.1666, 14.6612, 1, 1};
-    Adc adc(scales);
+    Adc adc;
 
     printk("Vout: %d mV\t", adc.read_vout());
     printk("Vbat: %d mV\n", adc.read_vbat());
