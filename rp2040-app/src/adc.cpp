@@ -15,8 +15,12 @@ static const struct adc_dt_spec adc_channels[] = {
                  DT_SPEC_AND_COMMA)
 };
 
-Adc::Adc() {
+Adc::Adc(float *scales)
+: num_chan(ARRAY_SIZE(adc_channels))
+{
     int err;
+    v_scales = new float[ARRAY_SIZE(adc_channels)]();
+
     sequence = {
         .buffer = &buf,
         /* buffer size in bytes, not number of samples */
@@ -25,6 +29,7 @@ Adc::Adc() {
 
     /* Configure channels individually prior to sampling. */
     for (size_t i = 0U; i < ARRAY_SIZE(adc_channels); i++) {
+        v_scales[i] = scales[i];
         if (!device_is_ready(adc_channels[i].dev)) {
             printk("ADC controller device %s not ready\n", adc_channels[i].dev->name);
         }
@@ -36,15 +41,20 @@ Adc::Adc() {
     }
 }
 
+bool Adc::check_chan(uint8_t ch) {
+    if(ch > num_chan) {
+        printk("Channel out of range!");
+        return false;
+    }
+    return true;
+}
+
 int Adc::read(uint8_t i) {
     int err;
     int32_t val_mv;
 
-    // printk("- %s, channel %d: ",
-	//     adc_channels[i].dev->name,
-	// 	adc_channels[i].channel_id);
-
-    printk("%d\n", adc_ref_internal(adc_channels[i].dev));
+    if(!check_chan(i))
+        return -1;
 
     (void)adc_sequence_init_dt(&adc_channels[i], &sequence);
     err = adc_read(adc_channels[i].dev, &sequence);
@@ -63,12 +73,23 @@ int Adc::read(uint8_t i) {
     err = adc_raw_to_millivolts_dt(&adc_channels[i],
         &val_mv);
 
-    if (err < 0) {
-        printk(" (value in mV not available)\n");
-    } else {
-        printk(" = %d mV\n", val_mv);
-    }
-
-    return val_mv;
+    return val_mv * v_scales[i];
 
 }
+
+int Adc::read_vout() {
+    return read(0);
+}
+
+int Adc::read_vbat() {
+    return read(1);
+}
+
+int Adc::read_iout() {
+    return read(2);
+}
+
+int Adc::read_ibat() {
+    return read(3);
+}
+

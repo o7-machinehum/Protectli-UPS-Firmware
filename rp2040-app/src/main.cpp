@@ -16,15 +16,18 @@ int main(void)
 {
     int ret;
 
-	printk("Protectli UPS\n");
+	printk("~~~ Protectli UPS ~~~\n");
 
     HwErrors hw_errors;
     Pid pid0(12.0, 1.0, 0.0, 0.0);
-    Adc adc;
-    adc.read(0);
-    adc.read(1);
-    adc.read(2);
-    adc.read(3);
+
+    float scales[4] = {5.1666, 14.6612, 1, 1};
+    Adc adc(scales);
+
+    printk("Vout: %d mV\t", adc.read_vout());
+    printk("Vbat: %d mV\n", adc.read_vbat());
+    printk("Iout: %d mV\t", adc.read_iout());
+    printk("Ibat: %d mV\n", adc.read_ibat());
 
     if (!device_is_ready(buck.dev)) {
 		printk("Error: PWM device %s is not ready\n",
