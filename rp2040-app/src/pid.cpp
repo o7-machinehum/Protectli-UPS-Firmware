@@ -20,14 +20,10 @@ float Pid::compute(float actual) {
     if(e_sum < INTEGRATOR_WINDUP)
         e_sum = INTEGRATOR_WINDUP;
 
-    // printk("p-%f i-%f d-%f\n", e, e_sum, derivatave);
-    // printk("i: %f\n", e_sum);
     drive = (e * kp) + (e_sum * ki) + (derivatave  * kd);
 
-    // printk("Drive: %f\t de: %f\t e: %f\t target: %f\t actual: %f\n ", drive, de, e, target, actual);
     if(drive > MAX_DRIVE)
         drive = MAX_DRIVE;
-
 
     e_prev = e;
     t_prev = t;
