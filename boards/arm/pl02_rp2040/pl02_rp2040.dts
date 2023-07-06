@@ -47,7 +47,7 @@
    		};
     };
 
-    pwmdevs {
+    pwm_leds {
         compatible = "pwm-leds";
         pwm_buck: pwm_buck_0 {
             pwms = <&pwm 4 PWM_USEC(2) PWM_POLARITY_NORMAL>;

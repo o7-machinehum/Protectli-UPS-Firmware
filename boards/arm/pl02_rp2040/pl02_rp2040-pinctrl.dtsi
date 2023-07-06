@@ -44,9 +44,8 @@
         };
     };
 
-    pwm_ch4b_default: pwm_ch4b_default {
+    pwm_ch2a_default: pwm_ch2a_default {
         group1 {
-            // pinmux = <PWM_4B_P25>;
             pinmux = <PWM_2A_P4>;
         };
     };

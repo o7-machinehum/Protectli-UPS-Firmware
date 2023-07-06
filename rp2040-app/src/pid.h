@@ -1,9 +1,10 @@
 #define MAX_DRIVE 1.0
+#define INTEGRATOR_WINDUP (-100)
 
 class Pid {
     float target;
     float kp, ki, kd;
-    float e_prev, integral;
+    float e_prev, e_sum;
     float t, t_prev;
     float drive;
 
@@ -19,6 +20,6 @@ public:
     }
 
     float get_duc() {
-        return drive / MAX_DRIVE;
+        return drive;
     }
 };

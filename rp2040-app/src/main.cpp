@@ -8,7 +8,7 @@
 #include "adc.h"
 // #include "buck.h"
 
-#define PERIOD PWM_USEC(2) // 500Khz
+#define PERIOD PWM_NSEC(2000) // 500Khz
 
 static const struct pwm_dt_spec buck = PWM_DT_SPEC_GET(DT_ALIAS(pwm_buck));
 
@@ -21,7 +21,7 @@ int main(void)
 	printk("~~~ Protectli UPS ~~~\n");
 
     HwErrors hw_errors;
-    Pid pid0(12.0, 2, 0.03, 0.0);
+    Pid pid0(12.0, 0.03, 0.0001, 0.00001);
 
     Adc adc;
 
@@ -36,15 +36,23 @@ int main(void)
 		return 0;
 	}
 
-
     // Main PID Loop
-    pwm_set_dt(&buck, PERIOD, PERIOD*0.5);
+    // ret = pwm_set_dt(&buck, PERIOD, PERIOD*0.08);
+    // printk("%d", buck.channel);
+    // if(ret) {
+    //     printk("%d", ret);
+    // }
+
+    // while(true) {
+	//     k_sleep(K_SECONDS(1U));
+    // };
     while(true) {
         ret = hw_errors.errors();
 
         if(!ret) {
             actual =  adc.read_vout();
             actual = actual / 1000;
+            // printk("%f\n", actual);
             pid0.compute(actual);
             drive = pid0.get_duc();
             // printk("%f\n", drive);
