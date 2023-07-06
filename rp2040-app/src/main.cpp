@@ -9,10 +9,12 @@
 // #include "buck.h"
 
 #define PERIOD PWM_NSEC(2000) // 500Khz
+#define STACKSIZE 16384
 
 static const struct pwm_dt_spec buck = PWM_DT_SPEC_GET(DT_ALIAS(pwm_buck));
 
-int main(void)
+// int main(void)
+void buckboost(void)
 {
     int ret;
     float drive;
@@ -33,7 +35,6 @@ int main(void)
     if (!device_is_ready(buck.dev)) {
 		printk("Error: PWM device %s is not ready\n",
 		       buck.dev->name);
-		return 0;
 	}
 
     // Main PID Loop
@@ -59,5 +60,7 @@ int main(void)
 
     }
 
-	return 0;
 }
+
+K_THREAD_DEFINE(buckboost_id, STACKSIZE, buckboost, NULL, NULL, NULL,
+		0, 0, 0);
