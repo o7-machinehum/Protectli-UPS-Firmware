@@ -11,9 +11,8 @@
 #define PERIOD PWM_NSEC(2000) // 500Khz
 #define STACKSIZE 16384
 
-static const struct pwm_dt_spec buck = PWM_DT_SPEC_GET(DT_ALIAS(pwm_buck));
 static const struct pwm_dt_spec boost = PWM_DT_SPEC_GET(DT_ALIAS(pwm_boost));
-
+static const struct pwm_dt_spec buck = PWM_DT_SPEC_GET(DT_ALIAS(pwm_buck));
 
 // This needs to be implemented to see if we're charing or discharging
 // ie: We have power, or we don't.
@@ -45,6 +44,15 @@ void buckboost(void)
 		printk("Error: PWM device %s is not ready\n",
 		       buck.dev->name);
 	}
+
+    if (!device_is_ready(boost.dev)) {
+		printk("Error: PWM device %s is not ready\n",
+		       boost.dev->name);
+	}
+
+    pwm_set_dt(&boost, PERIOD, PERIOD * 0.75);
+    pwm_set_dt(&buck, PERIOD, PERIOD * 0.5);
+    while(true) {};
 
     // Main PID Loop
     bool first = true;

@@ -44,17 +44,11 @@
         };
     };
 
-    pwm_ch2a_default: pwm_ch2a_default {
+    pwm_default: pwm_default {
         group1 {
-            pinmux = <PWM_2A_P4>;
+            pinmux = <PWM_2A_P4>, <PWM_3A_P6>;
         };
     };
-
-    // pwm_ch3a_default: pwm_ch3a_default {
-    //     group1 {
-    //         pinmux = <PWM_3A_P6>;
-    //     };
-    // };
 
     adc_default: adc_default {
         group1 {
