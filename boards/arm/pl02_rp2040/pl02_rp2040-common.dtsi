@@ -113,7 +113,6 @@ zephyr_udc0: &usbd {
     divider-int-0 = <128>;
 };
 
-
 &vreg {
     regulator-always-on;
     regulator-allowed-modes = <REGULATOR_RPI_PICO_MODE_NORMAL>;

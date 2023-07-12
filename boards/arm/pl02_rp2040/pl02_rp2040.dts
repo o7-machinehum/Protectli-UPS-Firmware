@@ -52,6 +52,10 @@
         pwm_buck: pwm_buck_0 {
             pwms = <&pwm 4 PWM_USEC(2) PWM_POLARITY_NORMAL>;
         };
+
+        pwm_boost: pwm_boost_0 {
+            pwms = <&pwm 6 PWM_USEC(2) PWM_POLARITY_NORMAL>;
+        };
     };
 
     zephyr,user {
@@ -60,6 +64,7 @@
 
     aliases {
         pwm-buck= &pwm_buck;
+        pwm-boost= &pwm_boost;
         load-overcurrent-led = &led0;
         batt-overcurrent-led = &led1;
         batt-overvoltage-led = &led2;
