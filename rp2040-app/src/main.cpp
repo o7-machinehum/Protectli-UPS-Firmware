@@ -50,10 +50,6 @@ void buckboost(void)
 		       boost.dev->name);
 	}
 
-    pwm_set_dt(&boost, PERIOD, PERIOD * 0.75);
-    pwm_set_dt(&buck, PERIOD, PERIOD * 0.5);
-    while(true) {};
-
     // Main PID Loop
     bool first = true;
     while(true) {
@@ -68,7 +64,7 @@ void buckboost(void)
             actual = actual / 1000;
             buck_pid.compute(actual);
             drive = buck_pid.get_duc();
-            printk("%f\n", drive);
+            // printk("%f\n", drive);
             if(drive < 0)
                 drive = 0;
 
@@ -90,7 +86,7 @@ void buckboost(void)
             }
             boost_pid.compute(actual);
             drive = boost_pid.get_duc();
-            // printk("%f\n", actual);
+            // printk("%f\n", drive);
             if(drive < 0)
                 drive = 0;
 
