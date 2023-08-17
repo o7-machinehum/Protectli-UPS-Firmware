@@ -3,7 +3,6 @@ class HwErrors{
         bool load_oc;
         bool batt_oc;
         bool batt_ov;
-        bool batt_ot;
     } errorCodes;
 
 public:

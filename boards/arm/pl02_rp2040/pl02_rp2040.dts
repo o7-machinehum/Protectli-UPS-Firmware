@@ -30,45 +30,54 @@
 
     errors_gpio {
         compatible = "gpio-keys";
-   		load_overcurrent: load_overcurrent {
-   			gpios = <&gpio0 12 GPIO_ACTIVE_LOW>;
-   		};
+        load_overcurrent: load_overcurrent {
+            gpios = <&gpio0 12 GPIO_ACTIVE_LOW>;
+        };
 
-   		batt_overcurrent: batt_overcurrent {
-   			gpios = <&gpio0 13 GPIO_ACTIVE_LOW>;
-   		};
+        batt_overcurrent: batt_overcurrent {
+            gpios = <&gpio0 13 GPIO_ACTIVE_LOW>;
+        };
 
-   		batt_overvoltage: batt_overvoltage {
-   			gpios = <&gpio0 14 GPIO_ACTIVE_LOW>;
-   		};
+        batt_overvoltage: batt_overvoltage {
+            gpios = <&gpio0 14 GPIO_ACTIVE_LOW>;
+        };
+    };
 
-   		batt_overtemp: batt_overtemp{
-   			gpios = <&gpio0 15 GPIO_ACTIVE_LOW>;
-   		};
+
+    gpios {
+        compatible = "gpio-keys";
+        vin_detect: vin_detect {
+            gpios = <&gpio0 15 GPIO_ACTIVE_HIGH>;
+        };
+
+        pwm_en: pwm_en {
+            gpios = <&gpio0 6 GPIO_ACTIVE_HIGH>;
+        };
+
+        pwm_skip: pwm_skip {
+            gpios = <&gpio0 7 GPIO_ACTIVE_HIGH>;
+        };
     };
 
     pwm_leds {
         compatible = "pwm-leds";
-        pwm_buck: pwm_buck_0 {
+        pwm0: pwm0 {
             pwms = <&pwm 4 PWM_USEC(2) PWM_POLARITY_NORMAL>;
-        };
-
-        pwm_boost: pwm_boost_0 {
-            pwms = <&pwm 6 PWM_USEC(2) PWM_POLARITY_NORMAL>;
         };
     };
 
     zephyr,user {
-		io-channels = <&adc 0>, <&adc 1>, <&adc 2>, <&adc 3>;
-	};
+        io-channels = <&adc 0>, <&adc 1>, <&adc 2>, <&adc 3>;
+    };
 
     aliases {
-        pwm-buck= &pwm_buck;
-        pwm-boost= &pwm_boost;
+        pwm-0 = &pwm0;
+        pwm-en = &pwm_en;
+        pwm-skip = &pwm_skip;
         load-overcurrent-led = &led0;
         batt-overcurrent-led = &led1;
         batt-overvoltage-led = &led2;
-        batt-overtemp-led = &led3;
+        vin-detect = &vin_detect;
     };
 };
 
@@ -77,38 +86,38 @@
 };
 
 &adc {
-	#address-cells = <1>;
-	#size-cells = <0>;
+    #address-cells = <1>;
+    #size-cells = <0>;
 
-	channel@0 {
-		reg = <0>;
-		zephyr,gain = "ADC_GAIN_1";
-		zephyr,reference = "ADC_REF_INTERNAL";
-		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
-		zephyr,resolution = <12>;
-	};
+    channel@0 {
+        reg = <0>;
+        zephyr,gain = "ADC_GAIN_1";
+        zephyr,reference = "ADC_REF_INTERNAL";
+        zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+        zephyr,resolution = <12>;
+    };
 
     channel@1 {
-		reg = <1>;
-		zephyr,gain = "ADC_GAIN_1";
-		zephyr,reference = "ADC_REF_INTERNAL";
-		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
-		zephyr,resolution = <12>;
-	};
+        reg = <1>;
+        zephyr,gain = "ADC_GAIN_1";
+        zephyr,reference = "ADC_REF_INTERNAL";
+        zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+        zephyr,resolution = <12>;
+    };
 
     channel@2 {
-		reg = <2>;
-		zephyr,gain = "ADC_GAIN_1";
-		zephyr,reference = "ADC_REF_INTERNAL";
-		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
-		zephyr,resolution = <12>;
-	};
+        reg = <2>;
+        zephyr,gain = "ADC_GAIN_1";
+        zephyr,reference = "ADC_REF_INTERNAL";
+        zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+        zephyr,resolution = <12>;
+    };
 
     channel@3 {
-		reg = <3>;
-		zephyr,gain = "ADC_GAIN_1";
-		zephyr,reference = "ADC_REF_INTERNAL";
-		zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
-		zephyr,resolution = <12>;
-	};
+        reg = <3>;
+        zephyr,gain = "ADC_GAIN_1";
+        zephyr,reference = "ADC_REF_INTERNAL";
+        zephyr,acquisition-time = <ADC_ACQ_TIME_DEFAULT>;
+        zephyr,resolution = <12>;
+    };
 };

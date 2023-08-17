@@ -1,14 +1,14 @@
 #include <zephyr/drivers/adc.h>
 
 class Adc {
-    struct adc_sequence sequence;
-    uint16_t buf;
     uint8_t num_chan;
-    bool check_chan(uint8_t ch);
+    struct adc_sequence sequence;
+
+    bool check_chan(size_t ch);
+    int read(size_t chan);
 
 public:
     Adc();
-    int read(uint8_t chan);
 
     int read_vout();
     int read_vbat();

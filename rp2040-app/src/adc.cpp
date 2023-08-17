@@ -8,6 +8,7 @@
 #define DT_SPEC_AND_COMMA(node_id, prop, idx) \
     ADC_DT_SPEC_GET_BY_IDX(node_id, idx),
 
+static uint16_t buf;
 
 /* Data of ADC io-channels specified in devicetree. */
 static const struct adc_dt_spec adc_channels[] = {
@@ -39,7 +40,7 @@ Adc::Adc()
     }
 }
 
-bool Adc::check_chan(uint8_t ch) {
+bool Adc::check_chan(size_t ch) {
     if(ch > num_chan) {
         printk("Channel out of range!");
         return false;
@@ -47,7 +48,7 @@ bool Adc::check_chan(uint8_t ch) {
     return true;
 }
 
-int Adc::read(uint8_t i) {
+int Adc::read(size_t i) {
     int err;
     int32_t val_mv;
 
@@ -62,7 +63,7 @@ int Adc::read(uint8_t i) {
         return -1;
     }
 
-    if (adc_channels[0].channel_cfg.differential) {
+    if (adc_channels[i].channel_cfg.differential) {
         val_mv = (int32_t)((int16_t)buf);
     } else {
         val_mv = (int32_t)buf;
@@ -76,18 +77,24 @@ int Adc::read(uint8_t i) {
 }
 
 int Adc::read_vout() {
+    // (R4 + R6) / R6
+    // (1e6 + 240e3) / 240e3 = 5.1666
     return read(0) * 5.1666;
 }
 
 int Adc::read_vbat() {
+    // (R7 + R8) / R8
+    // (100e3 + 7.32e3) / 7.32e3 = 14.6612
     return read(1) * 14.6612;
 }
 
 int Adc::read_iout() {
-    return read(2);
+    // I = ((V / R5) / U5_Gain)
+    return (read(2) / 5e-3) / 20;
 }
 
 int Adc::read_ibat() {
-    return read(3);
+    // I = ((V / R2) / U5_Gain)
+    return (read(3) / 5e-3) / 200;
 }
 

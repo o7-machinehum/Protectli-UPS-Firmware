@@ -11,13 +11,28 @@
 #define PERIOD PWM_NSEC(2000) // 500Khz
 #define STACKSIZE 16384
 
+<<<<<<< Updated upstream
 static const struct pwm_dt_spec boost = PWM_DT_SPEC_GET(DT_ALIAS(pwm_boost));
 static const struct pwm_dt_spec buck = PWM_DT_SPEC_GET(DT_ALIAS(pwm_buck));
+=======
+static const struct pwm_dt_spec pwm =
+    PWM_DT_SPEC_GET(DT_ALIAS(pwm_0));
 
-// This needs to be implemented to see if we're charing or discharging
-// ie: We have power, or we don't.
-bool vin_detect(void) {
-    return true;
+static const struct gpio_dt_spec pwm_en =
+    GPIO_DT_SPEC_GET(DT_ALIAS(pwm_en), gpios);
+>>>>>>> Stashed changes
+
+static const struct gpio_dt_spec pwm_skip =
+    GPIO_DT_SPEC_GET(DT_ALIAS(pwm_skip), gpios);
+
+static const struct gpio_dt_spec vin_detect =
+    GPIO_DT_SPEC_GET(DT_ALIAS(vin_detect), gpios);
+
+void print_voltages(Adc adc) {
+    printk("Vout: %d mV\t", adc.read_vout());
+    printk("Vbat: %d mV\t", adc.read_vbat());
+    printk("Iout: %d mA\t", adc.read_iout());
+    printk("Ibat: %d mA\n", adc.read_ibat());
 }
 
 void buckboost(void)
@@ -26,52 +41,70 @@ void buckboost(void)
     float drive;
     float actual;
 
+	k_sleep(K_MSEC(500U));
 	printk("~~~ Protectli UPS ~~~\n");
 
     HwErrors hw_errors;
-    Pid buck_pid(12.0, 0.03, 0.0001, 0.000002);
-    Pid boost_pid(15.0, 0.001, 0.0, 0.0);
+    Pid pid(12.0, 0.03, 0.0001, 0.0);
+    gpio_pin_configure_dt(&pwm_en, GPIO_OUTPUT);
+    gpio_pin_configure_dt(&pwm_skip, GPIO_OUTPUT_ACTIVE);
+    gpio_pin_configure_dt(&vin_detect, GPIO_INPUT);
 
     Adc adc;
+    print_voltages(adc);
 
-	k_sleep(K_MSEC(50U));
-    printk("Vout: %d mV\t", adc.read_vout());
-    printk("Vbat: %d mV\n", adc.read_vbat());
-    printk("Iout: %d mV\t", adc.read_iout());
-    printk("Ibat: %d mV\n", adc.read_ibat());
-
-    if (!device_is_ready(buck.dev)) {
+    if (!device_is_ready(pwm.dev)) {
 		printk("Error: PWM device %s is not ready\n",
-		       buck.dev->name);
+		       pwm.dev->name);
 	}
 
+<<<<<<< Updated upstream
     if (!device_is_ready(boost.dev)) {
 		printk("Error: PWM device %s is not ready\n",
 		       boost.dev->name);
 	}
+=======
+    // This works
+    // if(gpio_pin_get_dt(&vin_detect))
+	//     printk("Vin Detected\n");
+
+    // while(1) {};
+>>>>>>> Stashed changes
 
     // Main PID Loop
     bool first = true;
+    int countdown = 1000;
     while(true) {
-        ret = hw_errors.errors();
+        if(!countdown--) {
+            ret = hw_errors.errors();
+            countdown = 1000;
+            print_voltages(adc);
+        }
 
-        if(!ret & !vin_detect()) {
+        // Buck State
+        if(!ret && !gpio_pin_get_dt(&vin_detect)) {
             if(first) {
                 printk("Entering Buck State\n");
                 first = false;
             }
             actual =  adc.read_vout();
             actual = actual / 1000;
+<<<<<<< Updated upstream
             buck_pid.compute(actual);
             drive = buck_pid.get_duc();
+=======
+            pid.compute(actual);
+            drive = pid.get_duc();
+>>>>>>> Stashed changes
             // printk("%f\n", drive);
             if(drive < 0)
                 drive = 0;
 
-            pwm_set_dt(&boost, PERIOD, 0);
-            pwm_set_dt(&buck, PERIOD, PERIOD * drive);
+            gpio_pin_set_dt(&pwm_en, true);
+            pwm_set_dt(&pwm, PERIOD, PERIOD*drive);
 
         }
+<<<<<<< Updated upstream
         else if(!ret & vin_detect()) {
             if(first) {
                 printk("Entering Boost State\n");
@@ -89,16 +122,38 @@ void buckboost(void)
             // printk("%f\n", drive);
             if(drive < 0)
                 drive = 0;
+=======
+        // Boost State
+        else if(!ret && gpio_pin_get_dt(&vin_detect)) {
+            // if(first) {
+            //     printk("Entering Boost State\n");
+            //     first = false;
+            // }
+            // gpio_pin_set_dt(&pwm_en, true);
+            // actual = adc.read_vbat();
+            // actual = actual / 1000;
+            // if(actual > 16) {
+            //     gpio_pin_set_dt(&pwm_en, false);
+            //     // pwm_set_dt(&boost, PERIOD, PERIOD);
+            //     printk("Safety Trip\n");
+            //     while(1) {};
+            // }
+            // pid.compute(actual);
+            // drive = pid.get_duc();
+            // // printk("%f\n", actual);
+            // if(drive < 0)
+            //     drive = 0;
+>>>>>>> Stashed changes
 
-            pwm_set_dt(&buck, PERIOD, 0);
-            pwm_set_dt(&boost, PERIOD, PERIOD * drive);
+            // pwm_set_dt(&pwm, PERIOD, PERIOD * drive);
         }
         else {
             if(first) {
                 printk("UPS In Error State: %d\n", ret);
                 first = false;
             }
-            pwm_set_dt(&buck, PERIOD, 0);
+            gpio_pin_set_dt(&pwm_en, false);
+            pwm_set_dt(&pwm, PERIOD, 0);
 		    k_sleep(K_SECONDS(1U));
         }
 
