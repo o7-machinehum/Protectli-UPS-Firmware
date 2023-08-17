@@ -11,16 +11,11 @@
 #define PERIOD PWM_NSEC(2000) // 500Khz
 #define STACKSIZE 16384
 
-<<<<<<< Updated upstream
-static const struct pwm_dt_spec boost = PWM_DT_SPEC_GET(DT_ALIAS(pwm_boost));
-static const struct pwm_dt_spec buck = PWM_DT_SPEC_GET(DT_ALIAS(pwm_buck));
-=======
 static const struct pwm_dt_spec pwm =
     PWM_DT_SPEC_GET(DT_ALIAS(pwm_0));
 
 static const struct gpio_dt_spec pwm_en =
     GPIO_DT_SPEC_GET(DT_ALIAS(pwm_en), gpios);
->>>>>>> Stashed changes
 
 static const struct gpio_dt_spec pwm_skip =
     GPIO_DT_SPEC_GET(DT_ALIAS(pwm_skip), gpios);
@@ -58,18 +53,11 @@ void buckboost(void)
 		       pwm.dev->name);
 	}
 
-<<<<<<< Updated upstream
-    if (!device_is_ready(boost.dev)) {
-		printk("Error: PWM device %s is not ready\n",
-		       boost.dev->name);
-	}
-=======
     // This works
     // if(gpio_pin_get_dt(&vin_detect))
 	//     printk("Vin Detected\n");
 
     // while(1) {};
->>>>>>> Stashed changes
 
     // Main PID Loop
     bool first = true;
@@ -89,13 +77,8 @@ void buckboost(void)
             }
             actual =  adc.read_vout();
             actual = actual / 1000;
-<<<<<<< Updated upstream
-            buck_pid.compute(actual);
-            drive = buck_pid.get_duc();
-=======
             pid.compute(actual);
             drive = pid.get_duc();
->>>>>>> Stashed changes
             // printk("%f\n", drive);
             if(drive < 0)
                 drive = 0;
@@ -104,25 +87,6 @@ void buckboost(void)
             pwm_set_dt(&pwm, PERIOD, PERIOD*drive);
 
         }
-<<<<<<< Updated upstream
-        else if(!ret & vin_detect()) {
-            if(first) {
-                printk("Entering Boost State\n");
-                first = false;
-            }
-            actual = adc.read_vbat();
-            actual = actual / 1000;
-            if(actual > 16) {
-                pwm_set_dt(&boost, PERIOD, 0);
-                printk("Safety Trip\n");
-                while(1) {};
-            }
-            boost_pid.compute(actual);
-            drive = boost_pid.get_duc();
-            // printk("%f\n", drive);
-            if(drive < 0)
-                drive = 0;
-=======
         // Boost State
         else if(!ret && gpio_pin_get_dt(&vin_detect)) {
             // if(first) {
@@ -143,8 +107,6 @@ void buckboost(void)
             // // printk("%f\n", actual);
             // if(drive < 0)
             //     drive = 0;
->>>>>>> Stashed changes
-
             // pwm_set_dt(&pwm, PERIOD, PERIOD * drive);
         }
         else {
