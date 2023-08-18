@@ -94,7 +94,7 @@ int Adc::read_iout() {
 }
 
 int Adc::read_ibat() {
-    // I = ((V / R2) / U5_Gain)
+    // I = ((V / R2) / U21_Gain)
     return (read(3) / 5e-3) / 200;
 }
 
