@@ -97,7 +97,6 @@ void buckboost(void)
                 first = false;
             }
 
-
             // Read vbat in mA
             vbat = adc.read_vbat();
             if(vbat > 20000.0) {

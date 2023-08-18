@@ -12,7 +12,7 @@ cd pl02-fw
 west update
 ```
 
-### Build & Run - ESP32
+### Build & Run - ESP32/RP2040
 The application can be built by running:
 
 ```shell
@@ -30,4 +30,18 @@ west flash --runner jlink --build-dir build/rp2040
 ```shell
 # If you don't have a jlink (programmer). You can use this.
 sudo picotool load build/rp2040/zephyr/zephyr.elf
+```
+
+### Build & Run - STM32
+The STM32 doesn't not used zephyr, it's a libopencm3 project.
+```shell
+git submodule init
+git submodule update
+```
+
+Building and flashing
+```shell
+cd stm32-app
+make
+make flash
 ```
