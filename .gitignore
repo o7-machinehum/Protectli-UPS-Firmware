@@ -11,3 +11,8 @@
 /twister-out*
 
 __pycache__/
+
+*.d
+*.elf
+*.map
+*.o

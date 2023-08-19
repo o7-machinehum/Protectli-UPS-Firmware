@@ -39,6 +39,11 @@ git submodule init
 git submodule update
 ```
 
+Install Deps
+```shell
+sudo pacman -S arm-none-eabi-gcc openocd # Or whatever your OS is
+```
+
 Building and flashing
 ```shell
 cd stm32-app
