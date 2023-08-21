@@ -104,10 +104,9 @@ int main(void) {
     bq76920_clear_faults();
     bq76920_output_enable();
 
-    sprintf(buf, "%d %d\n\r", adc_gain, adc_offset);
-    // sprintf(buf, "%d\n\r", k);
-    uart_out(buf); // 48 121
+    #define FAULT_CNTDOWN 10
 
+    int clear_fault = FAULT_CNTDOWN;
     while(1) {
         sprintf(buf, "C0: %d C1: %d C2: %d C3: %d C4: %d C5: %d\n\r",
             bq76920_read_cell_v(0),
@@ -117,13 +116,20 @@ int main(void) {
             bq76920_read_cell_v(4),
             bq76920_read_cell_v(5)
         );
-        // sprintf(buf, "C0: %d", bq76920_read_cell_v(5));
 
         uart_out(buf); // 48 121
-        sprintf(buf, "Fault: %d\n\r", bq76920_read_reg(SYS_STAT));
-        uart_out(buf);
 
-        gpio_toggle(PORT_LED, PIN_LED1 | PIN_LED2);
+        ret = bq76920_read_reg(SYS_STAT);
+        if(ret) {
+            gpio_set(PORT_LED, PIN_LED1);
+            sprintf(buf, "Fault: %d\n\r", ret);
+            uart_out(buf); // 48 121
+            if(!clear_fault--) {
+                bq76920_clear_faults();
+                bq76920_output_enable();
+                clear_fault = FAULT_CNTDOWN;
+            }
+        }
 
         for (i = 0; i < 5000000; i++) { /* Wait a bit. */
             __asm__("nop");

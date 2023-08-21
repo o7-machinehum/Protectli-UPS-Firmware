@@ -1,10 +1,12 @@
 #define I2C_ADDR 0x18
 
 #define SYS_STAT 0x00
+#define CELLBAL1 0x01
 
 #define SYS_CTRL1 0x04
 #define SYS_CTRL2 0x05
 
+#define OV_TRIP 0x09
 #define UV_TRIP 0x0A
 #define CC_CFG 0x0B
 #define ADCOFFSET 0x51
@@ -51,6 +53,13 @@ void bq76920_set_uv(int voltage_mv) {
     bq76920_write_reg(UV_TRIP, uv_trip);
 }
 
+void bq76920_set_ov(int voltage_mv) {
+    uint16_t ov_trip = (((voltage_mv - adc_offset) * 1000 / adc_gain) >> 4)
+        & 0x00FF;
+
+    bq76920_write_reg(OV_TRIP, ov_trip);
+}
+
 void bq76920_output_enable(void) {
     bq76920_write_reg(SYS_CTRL2, 0b00000011);
 }
@@ -61,9 +70,12 @@ void bq76920_init() {
     adc_gain = 365 + (((bq76920_read_reg(ADCGAIN1) & 0b00001100) << 1) |
       ((bq76920_read_reg(ADCGAIN2) & 0b11100000) >> 5));
 
-    bq76920_set_uv(3000); // 3V/cell UV cutout
+    bq76920_set_uv(3000); // 3V / Cell
+    bq76920_set_ov(4200); // 4.2V / Cell
     bq76920_write_reg(SYS_CTRL1, 0b00010000); // ADC_EN = 1
 
+    // bq76920_write_reg(CELLBAL1, 0b00010111);
+    bq76920_write_reg(CELLBAL1, 0x00);
 }
 
 void bq76920_clear_faults(void) {
