@@ -82,8 +82,11 @@ void buckboost(void)
             buck_pid.compute(vout);
             drive = buck_pid.get_duc();
             // printk("%f\n", drive);
-            if(drive < 0)
-                drive = 0;
+            // if(drive < 0)
+            //     drive = 0;
+
+            // if(drive >= 0.99)
+            //     drive = 0.98;
 
             gpio_pin_set_dt(&pwm_en, true);
             pwm_set_dt(&pwm, PERIOD, PERIOD*drive);
