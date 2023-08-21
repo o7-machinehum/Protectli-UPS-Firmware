@@ -104,7 +104,6 @@ int main(void) {
     bq76920_clear_faults();
     bq76920_output_enable();
 
-    int8_t k = 255;
     sprintf(buf, "%d %d\n\r", adc_gain, adc_offset);
     // sprintf(buf, "%d\n\r", k);
     uart_out(buf); // 48 121

@@ -44,8 +44,8 @@ uint8_t bq76920_read_reg(uint8_t reg) {
 }
 
 void bq76920_set_uv(int voltage_mv) {
-    uint8_t uv_trip = (((voltage_mv - adc_offset) * 1000 / adc_gain) >> 4)
-        & 0b00111111;
+    uint16_t uv_trip = (((voltage_mv - adc_offset) * 1000 / adc_gain) >> 4)
+        & 0x00FF;
     uv_trip += 1;
 
     bq76920_write_reg(UV_TRIP, uv_trip);
