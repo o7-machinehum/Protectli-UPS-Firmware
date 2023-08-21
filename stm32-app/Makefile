@@ -20,6 +20,8 @@
 BINARY = main
 CSTD = -std=gnu99
 
+OBJS = printf.o
+
 LDSCRIPT = nucleo-g030f6.ld
 LIBNAME		= opencm3_stm32g0
 DEFS		+= -DSTM32G0
@@ -42,6 +44,5 @@ BMP_PORT	?=
 ################################################################################
 # texane/stlink specific variables
 #STLINK_PORT	?= :4242
-
 
 include rules.mk

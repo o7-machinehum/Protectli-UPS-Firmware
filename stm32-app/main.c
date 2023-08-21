@@ -4,14 +4,16 @@
 #include <libopencm3/stm32/i2c.h>
 #include <libopencm3/stm32/syscfg.h>
 
-#include <stdio.h>
-#include <stdlib.h>
+#include "printf.h"
+
+#include "bq76920.h"
 
 #define PORT_LED GPIOA
 #define PIN_LED1 GPIO5
 #define PIN_LED2 GPIO7
 
 void uart_out(char* data);
+void fault(void);
 
 static void clock_setup(void) {
     rcc_clock_setup(&rcc_clock_config[RCC_CLOCK_CONFIG_HSI_16MHZ]);
@@ -45,10 +47,12 @@ static void i2c_setup(void) {
 
     gpio_mode_setup(GPIOB, GPIO_MODE_AF, GPIO_PUPD_NONE, GPIO6 | GPIO7);
     gpio_set_af(GPIOB, GPIO_AF6, GPIO6 | GPIO7);
+    gpio_set_output_options(GPIOB, GPIO_OTYPE_OD, GPIO_OSPEED_HIGH, GPIO6 | GPIO7);
 
     i2c_peripheral_disable(I2C1);
-    // i2c_enable_analog_filter(I2C1);
-    // i2c_set_digital_filter(I2C1, 0);
+    i2c_disable_stretching(I2C1);
+    i2c_enable_analog_filter(I2C1);
+    i2c_set_digital_filter(I2C1, 5);
     i2c_set_speed(I2C1, i2c_speed_sm_100k, 16);
     i2c_set_7bit_addr_mode(I2C1);
     i2c_peripheral_enable(I2C1);
@@ -56,6 +60,8 @@ static void i2c_setup(void) {
 
 static void gpio_setup(void) {
     gpio_mode_setup(PORT_LED, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE, PIN_LED1 | PIN_LED2);
+
+    gpio_mode_setup(GPIOB, GPIO_MODE_INPUT, GPIO_PUPD_NONE, GPIO8);
 }
 
 void uart_out(char* data) {
@@ -64,14 +70,19 @@ void uart_out(char* data) {
     }
 }
 
-#define I2C_ADDR 0x18
-#define OV_TRIP 0x09
+void fault(void) {
+    gpio_set(PORT_LED, PIN_LED1);
+    while(1) {};
+}
+
+
+extern int8_t adc_offset;
+extern uint16_t adc_gain;
 
 int main(void) {
     int i = 0;
-    uint8_t cmd = 0;
-    uint8_t data = 0;
-    char buf[256];
+    uint8_t ret = 0;
+    char buf[128];
 
     clock_setup();
     gpio_setup();
@@ -81,14 +92,41 @@ int main(void) {
     sprintf(buf, "Starting BMS\r\n");
     uart_out(buf);
 
-    cmd = OV_TRIP;
-    // sprintf(buf, "%dSent some I2C\r\n", rcc_get_i2c_clk_freq(I2C1));
-    i2c_transfer7(I2C1, I2C_ADDR, &cmd, 1, &data, 1);
+    // Set CC_CFG to 0x19 as per the datasheet
+    bq76920_write_reg(CC_CFG, 0x19);
+    ret = bq76920_read_reg(CC_CFG);
+    if(ret != 0x19) {
+        // Something is wrong with the chip
+        fault();
+    }
+
+    bq76920_init();
+    bq76920_clear_faults();
+    bq76920_output_enable();
+
+    int8_t k = 255;
+    sprintf(buf, "%d %d\n\r", adc_gain, adc_offset);
+    // sprintf(buf, "%d\n\r", k);
+    uart_out(buf); // 48 121
 
     while(1) {
+        sprintf(buf, "C0: %d C1: %d C2: %d C3: %d C4: %d C5: %d\n\r",
+            bq76920_read_cell_v(0),
+            bq76920_read_cell_v(1),
+            bq76920_read_cell_v(2),
+            bq76920_read_cell_v(3),
+            bq76920_read_cell_v(4),
+            bq76920_read_cell_v(5)
+        );
+        // sprintf(buf, "C0: %d", bq76920_read_cell_v(5));
+
+        uart_out(buf); // 48 121
+        sprintf(buf, "Fault: %d\n\r", bq76920_read_reg(SYS_STAT));
+        uart_out(buf);
+
         gpio_toggle(PORT_LED, PIN_LED1 | PIN_LED2);
 
-        for (i = 0; i < 1000000; i++) { /* Wait a bit. */
+        for (i = 0; i < 5000000; i++) { /* Wait a bit. */
             __asm__("nop");
         }
 
