@@ -27,6 +27,7 @@ uint8_t bq76920_read_reg(uint8_t reg);
 void bq76920_init(void);
 void bq76920_output_enable(void);
 void bq76920_set_uv(int voltage_mv);
+void bq76920_set_ov(int voltage_mv);
 void bq76920_clear_faults(void);
 uint16_t bq76920_read_cell_v(uint8_t call);
 

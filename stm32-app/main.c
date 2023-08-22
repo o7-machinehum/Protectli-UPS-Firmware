@@ -13,7 +13,7 @@
 #define PIN_LED2 GPIO7
 
 void uart_out(char* data);
-void fault(void);
+void hard_fault(void);
 
 static void clock_setup(void) {
     rcc_clock_setup(&rcc_clock_config[RCC_CLOCK_CONFIG_HSI_16MHZ]);
@@ -70,14 +70,16 @@ void uart_out(char* data) {
     }
 }
 
-void fault(void) {
-    gpio_set(PORT_LED, PIN_LED1);
-    while(1) {};
+// Fast blink hard fault
+void hard_fault(void) {
+    int i = 0;
+    while(1) {
+        gpio_toggle(PORT_LED, PIN_LED1);
+        for (i = 0; i < 1000000; i++) {
+            __asm__("nop");
+        }
+    };
 }
-
-
-extern int8_t adc_offset;
-extern uint16_t adc_gain;
 
 int main(void) {
     int i = 0;
@@ -97,14 +99,14 @@ int main(void) {
     ret = bq76920_read_reg(CC_CFG);
     if(ret != 0x19) {
         // Something is wrong with the chip
-        fault();
+        hard_fault();
     }
 
     bq76920_init();
     bq76920_clear_faults();
     bq76920_output_enable();
 
-    #define FAULT_CNTDOWN 10
+    #define FAULT_CNTDOWN 3
 
     int clear_fault = FAULT_CNTDOWN;
     while(1) {
@@ -131,6 +133,7 @@ int main(void) {
             }
         }
 
+        gpio_toggle(PORT_LED, PIN_LED2);
         for (i = 0; i < 5000000; i++) { /* Wait a bit. */
             __asm__("nop");
         }
