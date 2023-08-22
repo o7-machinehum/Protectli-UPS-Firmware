@@ -5,6 +5,7 @@
 
 #define SYS_CTRL1 0x04
 #define SYS_CTRL2 0x05
+#define PROTECT1 0x06
 
 #define OV_TRIP 0x09
 #define UV_TRIP 0x0A
@@ -30,6 +31,7 @@ void bq76920_set_uv(int voltage_mv);
 void bq76920_set_ov(int voltage_mv);
 void bq76920_clear_faults(void);
 uint16_t bq76920_read_cell_v(uint8_t call);
+void bq76920_shutdown(void);
 
 void bq76920_write_reg(uint8_t reg, uint8_t val) {
     uint8_t dat[2];
@@ -78,13 +80,17 @@ void bq76920_init() {
     // bq76920_write_reg(CELLBAL1, 0b00010111);
     bq76920_write_reg(CELLBAL1, 0x00);
 
-    // PROTECT1 Left at default settings (22A Short Circuit)
+    bq76920_write_reg(PROTECT1, 0b00000001);
     // PROTECT2 Left at default settings (8A Over Current)
-    // This will of course need to change.
 }
 
 void bq76920_clear_faults(void) {
     bq76920_write_reg(SYS_STAT, 0b00111111);
+}
+
+void bq76920_shutdown(void) {
+    bq76920_write_reg(SYS_CTRL1, 0b00000001);
+    bq76920_write_reg(SYS_CTRL1, 0b00000010);
 }
 
 uint16_t bq76920_read_cell_v(uint8_t cell) {
@@ -95,5 +101,4 @@ uint16_t bq76920_read_cell_v(uint8_t cell) {
     v |= (bq76920_read_reg(VC1_HI+cell) << 8);
 
     return (v*adc_gain / 1000) + adc_offset;
-    // return v;
 }

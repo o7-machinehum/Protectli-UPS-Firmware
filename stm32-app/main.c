@@ -14,6 +14,8 @@
 
 void uart_out(char* data);
 void hard_fault(void);
+void delay(int t);
+uint8_t check_faults(uint8_t *fault_counter);
 
 static void clock_setup(void) {
     rcc_clock_setup(&rcc_clock_config[RCC_CLOCK_CONFIG_HSI_16MHZ]);
@@ -70,21 +72,44 @@ void uart_out(char* data) {
     }
 }
 
+void delay(int t) {
+    for (int i = 0; i < t; i++) {
+        __asm__("nop");
+    }
+}
+
 // Fast blink hard fault
 void hard_fault(void) {
-    int i = 0;
     while(1) {
         gpio_toggle(PORT_LED, PIN_LED1);
-        for (i = 0; i < 1000000; i++) {
-            __asm__("nop");
-        }
+        delay(1e6);
     };
 }
 
+uint8_t check_faults(uint8_t *fault_counter) {
+    uint8_t ret = 0;
+
+    ret = bq76920_read_reg(SYS_STAT);
+    if(ret) {
+        gpio_set(PORT_LED, PIN_LED1);
+        delay(1e6);
+        if(*fault_counter <= 10) {
+            bq76920_clear_faults();
+            bq76920_output_enable();
+            (*fault_counter)++;
+        }
+        else {
+            // Shutdown
+            bq76920_shutdown();
+        }
+    }
+    return ret;
+}
+
 int main(void) {
-    int i = 0;
     uint8_t ret = 0;
     char buf[128];
+    uint8_t fault_counter = 0;
 
     clock_setup();
     gpio_setup();
@@ -106,9 +131,6 @@ int main(void) {
     bq76920_clear_faults();
     bq76920_output_enable();
 
-    #define FAULT_CNTDOWN 3
-
-    int clear_fault = FAULT_CNTDOWN;
     while(1) {
         sprintf(buf, "C0: %d C1: %d C2: %d C3: %d C4: %d C5: %d\n\r",
             bq76920_read_cell_v(0),
@@ -118,26 +140,17 @@ int main(void) {
             bq76920_read_cell_v(4),
             bq76920_read_cell_v(5)
         );
-
         uart_out(buf);
 
-        ret = bq76920_read_reg(SYS_STAT);
+        ret = check_faults(&fault_counter);
         if(ret) {
-            gpio_set(PORT_LED, PIN_LED1);
-            sprintf(buf, "Fault: %d\n\r", ret);
-            uart_out(buf); // 48 121
-            if(!clear_fault--) {
-                bq76920_clear_faults();
-                bq76920_output_enable();
-                clear_fault = FAULT_CNTDOWN;
-            }
+            sprintf(buf, "Fault: %d, Fault Counter: %d\n\r",
+                ret, fault_counter);
+            uart_out(buf);
         }
 
         gpio_toggle(PORT_LED, PIN_LED2);
-        for (i = 0; i < 5000000; i++) { /* Wait a bit. */
-            __asm__("nop");
-        }
-
+        delay(5e6);
     }
 
     return 0;
