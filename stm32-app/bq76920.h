@@ -76,6 +76,10 @@ void bq76920_init() {
 
     // bq76920_write_reg(CELLBAL1, 0b00010111);
     bq76920_write_reg(CELLBAL1, 0x00);
+
+    // PROTECT1 Left at default settings (22A Short Circuit)
+    // PROTECT2 Left at default settings (8A Over Current)
+    // This will of course need to change.
 }
 
 void bq76920_clear_faults(void) {

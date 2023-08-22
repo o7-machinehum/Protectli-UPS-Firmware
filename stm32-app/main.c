@@ -117,7 +117,7 @@ int main(void) {
             bq76920_read_cell_v(5)
         );
 
-        uart_out(buf); // 48 121
+        uart_out(buf);
 
         ret = bq76920_read_reg(SYS_STAT);
         if(ret) {
