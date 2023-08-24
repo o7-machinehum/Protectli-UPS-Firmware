@@ -8,7 +8,7 @@
 #include "adc.h"
 // #include "buck.h"
 
-#define PERIOD PWM_USEC(2) // 500Khz
+#define PERIOD PWM_NSEC(2000) // 500Khz
 #define STACKSIZE 16384
 
 static const struct pwm_dt_spec pwm =
@@ -67,10 +67,6 @@ void buckboost(void)
     state = NONE;
     int countdown = 1000;
 
-    gpio_pin_set_dt(&pwm_en, true);
-    pwm_set_dt(&pwm, PERIOD, PERIOD*0.5);
-    while(true) {};
-
     while(true) {
         if(!countdown--) {
             ret = hw_errors.errors();
@@ -92,10 +88,8 @@ void buckboost(void)
             // if(drive < 0)
             //     drive = 0;
 
-            if(drive >= 0.99)
-                drive = 0.99;
-
-            drive = 0.5;
+            if(drive >= 0.85)
+                drive = 0.85;
 
             gpio_pin_set_dt(&pwm_en, true);
             pwm_set_dt(&pwm, PERIOD, PERIOD*drive);
