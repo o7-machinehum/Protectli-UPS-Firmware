@@ -73,7 +73,7 @@ void bq76920_init() {
     adc_gain = 365 + (((bq76920_read_reg(ADCGAIN1) & 0b00001100) << 1) |
       ((bq76920_read_reg(ADCGAIN2) & 0b11100000) >> 5));
 
-    bq76920_set_uv(3000); // 3V / Cell
+    bq76920_set_uv(2900); // 3V / Cell
     bq76920_set_ov(4200); // 4.2V / Cell
     bq76920_write_reg(SYS_CTRL1, 0b00010000); // ADC_EN = 1
 
