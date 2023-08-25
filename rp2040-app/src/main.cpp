@@ -23,13 +23,13 @@ static const struct gpio_dt_spec pwm_skip =
 static const struct gpio_dt_spec vin_detect =
     GPIO_DT_SPEC_GET(DT_ALIAS(vin_detect), gpios);
 
-void print_voltages(Adc adc, float drive, Pid pid) {
-    printk("Vout: %d mV\t", adc.read_vout());
-    printk("Vbat: %d mV\t", adc.read_vbat());
-    printk("Iout: %d mA\t", adc.read_iout());
-    printk("Ibat: %d mA\t", adc.read_ibat());
-    printk("pid.i: %f  \t", pid.get_i_term());
-    printk("Drve: %f\n", drive);
+void print_voltages(Adc adc, float drive, Bump pid) {
+    printk("Vout : %d mV\t", adc.read_vout());
+    printk("Vbat : %d mV\t", adc.read_vbat());
+    printk("Iout : %d mA\t", adc.read_iout());
+    printk("Ibat : %d mA\t", adc.read_ibat());
+    printk("Boost: %f  \t", pid.get_duc());
+    printk("Drve : %f\n", drive);
 }
 
 enum State {
@@ -49,7 +49,8 @@ void buckboost(void)
 
     HwErrors hw_errors;
     Pid buck_pid(12.0, 0.03, 0.0001, 0.0);
-    Pid boost_pid(500.0, 0.0007, 0.000001, 0.0); // 500mA current target
+    // Pid boost_pid(500.0, 0.0007, 0.000001, 0.0); // 500mA current target
+    Bump boost_pid(500.0, 0.00000001);
     gpio_pin_configure_dt(&pwm_en, GPIO_OUTPUT);
     gpio_pin_configure_dt(&pwm_skip, GPIO_OUTPUT_ACTIVE);
     gpio_pin_configure_dt(&vin_detect, GPIO_INPUT);
@@ -84,12 +85,11 @@ void buckboost(void)
             vout = vout / 1000;
             buck_pid.compute(vout);
             drive = buck_pid.get_duc();
-            // printk("%f\n", drive);
-            // if(drive < 0)
-            //     drive = 0;
 
             if(drive >= 0.85)
                 drive = 0.85;
+            if(drive <= 0.02)
+                drive = 0.02;
 
             gpio_pin_set_dt(&pwm_en, true);
             pwm_set_dt(&pwm, PERIOD, PERIOD*drive);
@@ -109,20 +109,13 @@ void buckboost(void)
 
             boost_pid.compute_boost(adc.read_ibat());
             drive = -0.25*boost_pid.get_duc() + 1;
-            drive = 0.75;
 
-            // if(drive < 0.8) {
-            //     gpio_pin_set_dt(&pwm_en, false);
-		    //     k_sleep(K_MSEC(1));
-            //     gpio_pin_set_dt(&pwm_en, true);
-		    //     k_sleep(K_MSEC(1));
-            // }
+            if(drive >= 0.85)
+                drive = 0.85;
+            if(drive <= 0.02)
+                drive = 0.02;
 
-            // printk("%f\n", drive);
-            // if(drive <= 0)
-            //     drive = 0;
-            // else if(drive >= 1)
-            //     drive = 0.97;
+            drive = 0.767;
 
             pwm_set_dt(&pwm, PERIOD, PERIOD * drive);
             gpio_pin_set_dt(&pwm_en, true);

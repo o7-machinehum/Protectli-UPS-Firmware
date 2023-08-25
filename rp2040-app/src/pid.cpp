@@ -4,11 +4,15 @@
 Pid::Pid(float target, float kp, float ki, float kd)
 :target(target), kp(kp), ki(ki), kd(kd), e_sum(0)
 {
-    compute(0);
+    compute(target);
 }
 
 float Pid::get_i_term(void) {
     return e_sum;
+}
+
+void Pid::zero_i_term(void) {
+    e_sum = 0;
 }
 
 float Pid::compute(float actual) {
@@ -40,7 +44,7 @@ float Pid::compute_boost(float actual) {
     float de = e - e_prev;
     float integral = (de / 2) * dt;
     float derivatave = (e - e_prev) / dt;
-    e_sum += e;
+    e_sum += e/10;
 
 	// printk("%f\n", e_sum);
 
@@ -57,5 +61,22 @@ float Pid::compute_boost(float actual) {
 
     e_prev = e;
     t_prev = t;
+    return drive;
+}
+
+Bump::Bump(float target, float bump_amt)
+:target(target), bump_sum(0), bump_amt(bump_amt), drive(0)
+{
+}
+
+float Bump::compute_boost(float actual) {
+    bump_sum += (target - actual);
+    drive = bump_sum * bump_amt;
+
+    if(drive < 0)
+        drive = 0;
+    if(drive > 1)
+        drive = 1;
+
     return drive;
 }

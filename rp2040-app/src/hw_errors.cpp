@@ -24,9 +24,9 @@ static const struct gpio_dt_spec batt_ov =
     GPIO_DT_SPEC_GET(DT_NODELABEL(load_overcurrent), gpios);
 
 HwErrors::HwErrors() {
-    gpio_pin_configure_dt(&load_oc_led, GPIO_OUTPUT);
-    gpio_pin_configure_dt(&batt_oc_led, GPIO_OUTPUT);
-    gpio_pin_configure_dt(&batt_ov_led, GPIO_OUTPUT);
+    gpio_pin_configure_dt(&load_oc_led, GPIO_OUTPUT_INACTIVE);
+    gpio_pin_configure_dt(&batt_oc_led, GPIO_OUTPUT_INACTIVE);
+    gpio_pin_configure_dt(&batt_ov_led, GPIO_OUTPUT_INACTIVE);
 
     gpio_pin_configure_dt(&load_oc, GPIO_INPUT);
     gpio_pin_configure_dt(&batt_oc, GPIO_INPUT);

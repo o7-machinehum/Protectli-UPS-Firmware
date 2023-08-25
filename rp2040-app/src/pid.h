@@ -17,10 +17,26 @@ public:
     float compute(float actual);
     float compute_boost(float actual);
     float get_i_term(void);
+    void zero_i_term(void);
 
     void update_target(float t) {
         target = t;
     }
+
+    float get_duc() {
+        return drive;
+    }
+};
+
+class Bump {
+    float target;
+    float bump_sum;
+    float bump_amt;
+    float drive;
+
+public:
+    Bump(float target, float bump_amt);
+    float compute_boost(float actual);
 
     float get_duc() {
         return drive;
