@@ -113,6 +113,11 @@ int main(void) {
 
     clock_setup();
     gpio_setup();
+
+    gpio_set(PORT_LED, PIN_LED1);
+    delay(1e6);
+    gpio_clear(PORT_LED, PIN_LED1);
+
     usart_setup();
     i2c_setup();
 
