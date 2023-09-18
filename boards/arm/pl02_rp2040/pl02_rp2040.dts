@@ -57,6 +57,10 @@
         pwm_skip: pwm_skip {
             gpios = <&gpio0 7 GPIO_ACTIVE_HIGH>;
         };
+
+        pack_boot: pack_boot {
+            gpios = <&gpio0 20 GPIO_ACTIVE_HIGH>;
+        };
     };
 
     pwm_leds {
@@ -78,6 +82,7 @@
         batt-overcurrent-led = &led1;
         batt-overvoltage-led = &led2;
         vin-detect = &vin_detect;
+        pack-boot= &pack_boot;
     };
 };
 

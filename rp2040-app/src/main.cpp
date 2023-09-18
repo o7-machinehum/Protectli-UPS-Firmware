@@ -23,6 +23,9 @@ static const struct gpio_dt_spec pwm_skip =
 static const struct gpio_dt_spec vin_detect =
     GPIO_DT_SPEC_GET(DT_ALIAS(vin_detect), gpios);
 
+static const struct gpio_dt_spec pack_boot =
+    GPIO_DT_SPEC_GET(DT_ALIAS(pack_boot), gpios);
+
 void print_voltages(Adc adc, float drive, Bump pid) {
     printk("Vout : %d mV\t", adc.read_vout());
     printk("Vbat : %d mV\t", adc.read_vbat());
@@ -45,25 +48,26 @@ void buckboost(void)
     float drive;
     float vout = 0, vbat = 0;
 
-	printk("~~~ Protectli UPS ~~~\n");
+    printk("~~~ Protectli UPS ~~~\n");
 
     HwErrors hw_errors;
     Pid buck_pid(12.0, 0.03, 0.0001, 0.0);
     // Pid boost_pid(500.0, 0.0007, 0.000001, 0.0); // 500mA current target
     Bump boost_pid(500.0, 0.00000001);
     gpio_pin_configure_dt(&pwm_en, GPIO_OUTPUT);
+    gpio_pin_configure_dt(&pack_boot, GPIO_OUTPUT);
     gpio_pin_configure_dt(&pwm_skip, GPIO_OUTPUT_ACTIVE);
     gpio_pin_configure_dt(&vin_detect, GPIO_INPUT);
 
-	k_sleep(K_MSEC(1000));
+    k_sleep(K_MSEC(1000));
 
     Adc adc;
     print_voltages(adc, 0.00, boost_pid);
 
     if (!device_is_ready(pwm.dev)) {
-		printk("Error: PWM device %s is not ready\n",
-		       pwm.dev->name);
-	}
+        printk("Error: PWM device %s is not ready\n",
+               pwm.dev->name);
+    }
 
     state = NONE;
     int countdown = 1000;
@@ -99,6 +103,9 @@ void buckboost(void)
             if(state != BOOST) {
                 state = BOOST;
                 printk("Entering Boost State\n");
+                gpio_pin_set_dt(&pack_boot, true);
+                k_sleep(K_MSEC(100U));
+                gpio_pin_set_dt(&pack_boot, false);
             }
 
             if(vbat > 20000.0) {
@@ -115,7 +122,7 @@ void buckboost(void)
             if(drive <= 0.02)
                 drive = 0.02;
 
-            drive = 0.767;
+            drive = 0.770;
 
             pwm_set_dt(&pwm, PERIOD, PERIOD * drive);
             gpio_pin_set_dt(&pwm_en, true);
@@ -128,10 +135,10 @@ void buckboost(void)
             }
             gpio_pin_set_dt(&pwm_en, false);
             pwm_set_dt(&pwm, PERIOD, 0);
-		    k_sleep(K_SECONDS(1U));
+            k_sleep(K_SECONDS(1U));
         }
     }
 }
 
 K_THREAD_DEFINE(buckboost_id, STACKSIZE, buckboost, NULL, NULL, NULL,
-		0, 0, 0);
+        0, 0, 0);
