@@ -12,8 +12,8 @@ manifest:
   projects:
     - name: zephyr
       remote: zephyrproject-rtos
-      # revision: zephyr-v3.4.0
-      revision: main
+      revision: zephyr-v3.4.0
+      # revision: main
       import:
         # By using name-allowlist we can clone only the modules that are
         # strictly needed by the application.
@@ -21,4 +21,3 @@ manifest:
           - cmsis         # required by the ARM port
           - hal_espressif
           - hal_rpi_pico
-
