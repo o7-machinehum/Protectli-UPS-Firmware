@@ -1,25 +1,12 @@
-/*
- * Copyright (c) 2016 Intel Corporation
- *
- * SPDX-License-Identifier: Apache-2.0
- */
-
 #include <zephyr/kernel.h>
 #include <zephyr/drivers/gpio.h>
 #include <zephyr/drivers/display.h>
 #include <zephyr/display/cfb.h>
 #include <stdio.h>
 
-/* 1000 msec = 1 sec */
 #define SLEEP_TIME_MS   1000
-
-/* The devicetree node identifier for the "led0" alias. */
 #define LED0_NODE DT_ALIAS(led0)
 
-/*
- * A build error on this line means your board is unsupported.
- * See the sample documentation for information on how to fix this.
- */
 static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
 
 int main(void)
@@ -32,11 +19,12 @@ int main(void)
 	uint8_t font_height;
 
     printf("Starting Up!\n");
-    gpio_pin_set_dt(&led, true);
 
     if (!gpio_is_ready_dt(&led)) {
         return 0;
     }
+
+    gpio_pin_configure_dt(&led, GPIO_OUTPUT_INACTIVE);
 
     display = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
     if (!device_is_ready(display)) {
@@ -77,20 +65,12 @@ int main(void)
            rows,
            cfb_get_display_parameter(display, CFB_DISPLAY_COLS));
 
-    gpio_pin_configure_dt(&led, GPIO_OUTPUT_ACTIVE);
+    cfb_framebuffer_clear(display, true);
+    cfb_draw_text(display, "Hello", 0, 0);
+    cfb_invert_area(display, 0, 0, 128, 64);
+    cfb_framebuffer_finalize(display);
 
     while (1) {
-        for (int i = 0; i < rows; i++) {
-            cfb_framebuffer_clear(display, false);
-            if (cfb_print(display,
-                      "0123456789mMgj!\"§$%&/()=",
-                      0, i * ppt)) {
-                printf("Failed to print a string\n");
-                continue;
-            }
-        }
-
-        cfb_framebuffer_finalize(display);
         gpio_pin_toggle_dt(&led);
         k_msleep(SLEEP_TIME_MS);
     }
