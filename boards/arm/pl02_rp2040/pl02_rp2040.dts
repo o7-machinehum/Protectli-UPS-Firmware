@@ -9,6 +9,26 @@
 #include "pl02_rp2040-common.dtsi"
 
 / {
+
+    spi0_bus {
+        compatible = "gpio-leds";
+        gpio_0: gpio_0{
+            gpios = <&gpio0 0 GPIO_ACTIVE_HIGH>;
+        };
+
+        gpio_1: gpio_1{
+            gpios = <&gpio0 1 GPIO_ACTIVE_HIGH>;
+        };
+
+        gpio_2: gpio_2{
+            gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>;
+        };
+
+        gpio_3: gpio_3{
+            gpios = <&gpio0 3 GPIO_ACTIVE_HIGH>;
+        };
+    };
+
     leds {
         compatible = "gpio-leds";
         led0: led_0 {
@@ -75,6 +95,10 @@
     };
 
     aliases {
+        gpio-0 = &gpio_0;
+        gpio-1 = &gpio_1;
+        gpio-2 = &gpio_2;
+        gpio-3 = &gpio_3;
         pwm-0 = &pwm0;
         pwm-en = &pwm_en;
         pwm-skip = &pwm_skip;

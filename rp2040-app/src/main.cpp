@@ -26,6 +26,18 @@ static const struct gpio_dt_spec vin_detect =
 static const struct gpio_dt_spec pack_boot =
     GPIO_DT_SPEC_GET(DT_ALIAS(pack_boot), gpios);
 
+static const struct gpio_dt_spec gpio0 =
+    GPIO_DT_SPEC_GET(DT_ALIAS(gpio_0), gpios);
+
+static const struct gpio_dt_spec gpio1 =
+    GPIO_DT_SPEC_GET(DT_ALIAS(gpio_1), gpios);
+
+static const struct gpio_dt_spec gpio2 =
+    GPIO_DT_SPEC_GET(DT_ALIAS(gpio_2), gpios);
+
+static const struct gpio_dt_spec gpio3 =
+    GPIO_DT_SPEC_GET(DT_ALIAS(gpio_3), gpios);
+
 void print_voltages(Adc adc, float drive, Bump pid) {
     printk("Vout : %d mV\t", adc.read_vout());
     printk("Vbat : %d mV\t", adc.read_vbat());
@@ -58,6 +70,11 @@ void buckboost(void)
     gpio_pin_configure_dt(&pack_boot, GPIO_OUTPUT);
     gpio_pin_configure_dt(&pwm_skip, GPIO_OUTPUT_ACTIVE);
     gpio_pin_configure_dt(&vin_detect, GPIO_INPUT);
+
+    gpio_pin_configure_dt(&gpio0, GPIO_DISCONNECTED);
+    gpio_pin_configure_dt(&gpio1, GPIO_DISCONNECTED);
+    gpio_pin_configure_dt(&gpio2, GPIO_DISCONNECTED);
+    gpio_pin_configure_dt(&gpio3, GPIO_DISCONNECTED);
 
     k_sleep(K_MSEC(1000));
 
