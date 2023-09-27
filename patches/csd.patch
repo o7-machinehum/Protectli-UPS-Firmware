@@ -1,0 +1,41 @@
+diff --git a/subsys/fb/Kconfig b/subsys/fb/Kconfig
+index 00be2ab08c..0d1075d799 100644
+--- a/subsys/fb/Kconfig
++++ b/subsys/fb/Kconfig
+@@ -31,6 +31,13 @@ config CHARACTER_FRAMEBUFFER_SHELL_DRIVER_NAME
+ 	help
+ 	  Character Framebuffer Display Driver Name
+
++config CHARACTER_FRAMEBUFFER_ROTATE
++	bool "Rotate the frambuffer"
++	default n
++	help
++	  Rotate the Framebuffer by 180deg. Used if the screen is up side
++	  down.
++
+ module = CFB
+ module-str = cfb
+ source "subsys/logging/Kconfig.template.log_config"
+diff --git a/subsys/fb/cfb.c b/subsys/fb/cfb.c
+index 52b406827f..feba0d9ff2 100644
+--- a/subsys/fb/cfb.c
++++ b/subsys/fb/cfb.c
+@@ -451,6 +447,18 @@ int cfb_framebuffer_finalize(const struct device *dev)
+ 		return -ENODEV;
+ 	}
+
++#if defined(CONFIG_CHARACTER_FRAMEBUFFER_ROTATE)
++	uint8_t temp = 0;
++	uint16_t end = ((fb->x_res * fb->y_res) / 8U);
++
++	for (size_t i = 0; i < fb->x_res * fb->y_res / 16U; i++) {
++		temp = byte_reverse(fb->buf[end]);
++		fb->buf[end] = byte_reverse(fb->buf[i]);
++		fb->buf[i] = temp;
++		end--;
++	}
++#endif
++
+ 	desc.buf_size = fb->size;
+ 	desc.width = fb->x_res;
+ 	desc.height = fb->y_res;

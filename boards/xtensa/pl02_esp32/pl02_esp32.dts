@@ -12,27 +12,28 @@
     model = "pl02_esp32";
     compatible = "espressif,pl02_esp32";
 
+    leds {
+        compatible = "gpio-leds";
+        led0: led_0 {
+            gpios = <&gpio0 16 GPIO_ACTIVE_HIGH>;
+        };
+    };
+
+    relays {
+        compatible = "gpio-leds";
+        relay1: relay_1 {
+            gpios = <&gpio0 4 GPIO_ACTIVE_HIGH>;
+        };
+
+        relay2: relay_2 {
+            gpios = <&gpio0 25 GPIO_ACTIVE_HIGH>;
+        };
+    };
+
     aliases {
         uart-0 = &uart0;
         i2c-0 = &i2c0;
-        led0 = &myled0;
-        sw0 = &button0;
         watchdog0 = &wdt0;
-    };
-
-    buttons {
-        compatible = "gpio-keys";
-        button0: button_0 {
-            gpios = <&gpio0 0 (GPIO_PULL_UP | GPIO_ACTIVE_LOW)>;
-            label = "BOOT Button";
-        };
-    };
-
-    leds {
-        compatible = "gpio-leds";
-        myled0: led_0 {
-            gpios = <&gpio0 16 GPIO_ACTIVE_HIGH>;
-        };
     };
 
     chosen {

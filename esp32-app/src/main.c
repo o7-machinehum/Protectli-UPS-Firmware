@@ -4,10 +4,17 @@
 #include <zephyr/display/cfb.h>
 #include <stdio.h>
 
-#define SLEEP_TIME_MS   1000
+#define SLEEP_TIME_MS   5000
 #define LED0_NODE DT_ALIAS(led0)
 
-static const struct gpio_dt_spec led = GPIO_DT_SPEC_GET(LED0_NODE, gpios);
+static const struct gpio_dt_spec led
+    = GPIO_DT_SPEC_GET(DT_NODELABEL(led0), gpios);
+
+static const struct gpio_dt_spec relay1
+    = GPIO_DT_SPEC_GET(DT_NODELABEL(relay1), gpios);
+
+static const struct gpio_dt_spec relay2
+    = GPIO_DT_SPEC_GET(DT_NODELABEL(relay2), gpios);
 
 int main(void)
 {
@@ -25,6 +32,7 @@ int main(void)
     }
 
     gpio_pin_configure_dt(&led, GPIO_OUTPUT_INACTIVE);
+    gpio_pin_configure_dt(&relay1, GPIO_OUTPUT_ACTIVE);
 
     display = DEVICE_DT_GET(DT_CHOSEN(zephyr_display));
     if (!device_is_ready(display)) {
@@ -66,12 +74,17 @@ int main(void)
            cfb_get_display_parameter(display, CFB_DISPLAY_COLS));
 
     cfb_framebuffer_clear(display, true);
-    cfb_draw_text(display, "Hello", 0, 0);
-    cfb_invert_area(display, 0, 0, 128, 64);
+
+    cfb_draw_text(display, "Hello", 10, 10);
+    // cfb_draw_rect(display, &start, &end);
+
     cfb_framebuffer_finalize(display);
+    // cfb_invert_area(display, 0, 0, 100, 64);
+    // printk("%d", display->buf[0]);
 
     while (1) {
         gpio_pin_toggle_dt(&led);
+        gpio_pin_toggle_dt(&relay1);
         k_msleep(SLEEP_TIME_MS);
     }
     return 0;
