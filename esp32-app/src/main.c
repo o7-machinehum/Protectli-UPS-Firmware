@@ -3,10 +3,15 @@
 #include <zephyr/drivers/display.h>
 #include <zephyr/display/cfb.h>
 #include <zephyr/drivers/spi.h>
+#include <zephyr/drivers/uart.h>
 #include <stdio.h>
 
 #define SLEEP_TIME_MS   5000
 #define LED0_NODE DT_ALIAS(led0)
+
+#define MSG_SIZE 32
+
+K_MSGQ_DEFINE(uart_msgq, MSG_SIZE, 10, 4);
 
 static struct k_poll_signal spi_slave_done_sig
     = K_POLL_SIGNAL_INITIALIZER(spi_slave_done_sig);
@@ -20,62 +25,54 @@ static const struct gpio_dt_spec relay1
 static const struct gpio_dt_spec relay2
     = GPIO_DT_SPEC_GET(DT_NODELABEL(relay2), gpios);
 
-#define SPI_OP  SPI_OP_MODE_SLAVE | SPI_MODE_CPOL | SPI_MODE_CPHA | SPI_WORD_SET(8) | SPI_LINES_SINGLE
-static const struct spi_dt_spec spi2
-    = SPI_DT_SPEC_GET(DT_NODELABEL(mcp3201), SPI_OP, 0);
+static const struct device *const uart_dev
+    = DEVICE_DT_GET(DT_CHOSEN(zephyr_mcu_uart));
 
-// const struct device *dev_spi;
-//
-// static const struct spi_config spi_slave_cfg = {
-// 	.operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB |
-// 				 SPI_MODE_CPOL | SPI_MODE_CPHA | SPI_OP_MODE_SLAVE,
-// 	.frequency = 4000000,
-// 	.slave = 0,
-// };
+/* receive buffer used in UART ISR callback */
+static char rx_buf[MSG_SIZE];
+static int rx_buf_pos;
 
-static int spi_check_for_messages(void) {
-    int signaled, result;
-    k_poll_signal_check(&spi_slave_done_sig, &signaled, &result);
-    if(signaled) {
-        return 1;
-    }
-    return 0;
+/*
+ * Read characters from UART until line end is detected. Afterwards push the
+ * data to the message queue.
+ */
+void serial_cb(const struct device *dev, void *user_data)
+{
+	uint8_t c;
+
+	if (!uart_irq_update(uart_dev)) {
+		return;
+	}
+
+	if (!uart_irq_rx_ready(uart_dev)) {
+		return;
+	}
+
+	/* read until FIFO empty */
+	while (uart_fifo_read(uart_dev, &c, 1) == 1) {
+		if ((c == '\n' || c == '\r') && rx_buf_pos > 0) {
+			/* terminate string */
+			rx_buf[rx_buf_pos] = '\0';
+
+			/* if queue is full, message is silently dropped */
+			k_msgq_put(&uart_msgq, &rx_buf, K_NO_WAIT);
+
+			/* reset the buffer (it was copied to the msgq) */
+			rx_buf_pos = 0;
+		} else if (rx_buf_pos < (sizeof(rx_buf) - 1)) {
+			rx_buf[rx_buf_pos++] = c;
+		}
+		/* else: characters beyond buffer size are dropped */
+	}
 }
 
-static uint8_t slave_tx_buffer[2];
-static uint8_t slave_rx_buffer[2];
-static int spi_slave_write(void) {
+void print_uart(char *buf)
+{
+	int msg_len = strlen(buf);
 
-    const struct spi_buf s_tx_buf = {
-		.buf = slave_tx_buffer,
-		.len = sizeof(slave_tx_buffer)
-	};
-
-    const struct spi_buf_set s_tx = {
-		.buffers = &s_tx_buf,
-		.count = 1
-	};
-
-    struct spi_buf s_rx_buf = {
-		.buf = slave_rx_buffer,
-		.len = sizeof(slave_rx_buffer),
-	};
-
-    const struct spi_buf_set s_rx = {
-		.buffers = &s_rx_buf,
-		.count = 1
-	};
-
-    k_poll_signal_reset(&spi_slave_done_sig);
-    // int error = spi_transceive_signal(dev_spi, &spi_slave_cfg, &s_tx, &s_rx, &spi_slave_done_sig);
-    int error = spi_transceive_dt(&spi2, &s_tx, &s_rx);
-
-	if(error != 0){
-		printk("SPI slave transceive error: %i\n", error);
-		return error;
+	for (int i = 0; i < msg_len; i++) {
+		uart_poll_out(uart_dev, buf[i]);
 	}
-	printk("Did SPI Thing");
-    return 0;
 }
 
 int main(void) {
@@ -85,6 +82,7 @@ int main(void) {
 	uint8_t ppt;
 	uint8_t font_width;
 	uint8_t font_height;
+	char tx_buf[MSG_SIZE];
 
     printf("Starting Up!\n");
 
@@ -106,18 +104,30 @@ int main(void) {
         return 0;
     }
 
-    printf("Initialized %s\n", display->name);
-
     if (cfb_framebuffer_init(display)) {
         printf("Framebuffer initialization failed!\n");
         return 0;
     }
 
-    // dev_spi = DEVICE_DT_GET(DT_CHOSEN(zephyr_spi));
-    // if (dev_spi == NULL) {
-    //     printk("Could not get SPI device\n");
-    //     return 0;
-    // }
+    if (!device_is_ready(uart_dev)) {
+		printk("UART device not found!");
+		return 0;
+	}
+
+    /* configure interrupt and callback to receive data */
+	ret = uart_irq_callback_user_data_set(uart_dev, serial_cb, NULL);
+
+    if (ret < 0) {
+		if (ret == -ENOTSUP) {
+			printk("Interrupt-driven UART API support not enabled\n");
+		} else if (ret == -ENOSYS) {
+			printk("UART device does not support interrupt-driven API\n");
+		} else {
+			printk("Error setting UART callback: %d\n", ret);
+		}
+		return 0;
+	}
+	uart_irq_rx_enable(uart_dev);
 
     cfb_framebuffer_clear(display, true);
     display_blanking_off(display);
@@ -149,15 +159,14 @@ int main(void) {
     // cfb_invert_area(display, 0, 0, 100, 64);
     // printk("%d", display->buf[0]);
 
-    spi_slave_write();
-
     while (1) {
         gpio_pin_toggle_dt(&led);
-        k_msleep(SLEEP_TIME_MS);
-        if(spi_check_for_messages()) {
-            printk("SPI SLAVE RX: 0x%.2x, 0x%.2x\n",
-                slave_rx_buffer[0], slave_rx_buffer[1]);
+
+	    if (!k_msgq_get(&uart_msgq, &tx_buf, K_NO_WAIT)) {
+			printk("Got some Data: %s\n", tx_buf);
         }
+
+        k_msleep(SLEEP_TIME_MS);
     }
     return 0;
 }

@@ -40,9 +40,9 @@
         zephyr,sram = &sram0;
         zephyr,console = &uart0;
         zephyr,shell-uart = &uart0;
+        zephyr,mcu-uart = &uart2;
         zephyr,flash = &flash0;
         zephyr,display = &ssd1306;
-        zephyr,spi = &spi2;
     };
 
     power-states {
@@ -86,6 +86,7 @@
 };
 
 &uart2 {
+    status = "okay";
     current-speed = <115200>;
     pinctrl-0 = <&uart2_default>;
     pinctrl-names = "default";
@@ -123,19 +124,13 @@
         };
 };
 
-&spi2 {
-    #address-cells = <1>;
-    #size-cells = <0>;
-    status = "okay";
-    pinctrl-0 = <&spim2_default>;
-    pinctrl-names = "default";
-    mcp3201: mcp3201@0 {
-        compatible = "vnd,spi-device";
-        reg = <0>;
-        spi-max-frequency = <1600000>;
-        label = "mcp3201";
-    };
-};
+// &spi2 {
+//     #address-cells = <1>;
+//     #size-cells = <0>;
+//     status = "okay";
+//     pinctrl-0 = <&spim2_default>;
+//     pinctrl-names = "default";
+// };
 
 &spi3 {
     #address-cells = <1>;
