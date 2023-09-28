@@ -20,13 +20,18 @@ static const struct gpio_dt_spec relay1
 static const struct gpio_dt_spec relay2
     = GPIO_DT_SPEC_GET(DT_NODELABEL(relay2), gpios);
 
-const struct device *dev_spi;
-static const struct spi_config spi_slave_cfg = {
-	.operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB |
-				 SPI_MODE_CPOL | SPI_MODE_CPHA | SPI_OP_MODE_SLAVE,
-	.frequency = 4000000,
-	.slave = 0,
-};
+#define SPI_OP  SPI_OP_MODE_SLAVE | SPI_MODE_CPOL | SPI_MODE_CPHA | SPI_WORD_SET(8) | SPI_LINES_SINGLE
+static const struct spi_dt_spec spi2
+    = SPI_DT_SPEC_GET(DT_NODELABEL(mcp3201), SPI_OP, 0);
+
+// const struct device *dev_spi;
+//
+// static const struct spi_config spi_slave_cfg = {
+// 	.operation = SPI_WORD_SET(8) | SPI_TRANSFER_MSB |
+// 				 SPI_MODE_CPOL | SPI_MODE_CPHA | SPI_OP_MODE_SLAVE,
+// 	.frequency = 4000000,
+// 	.slave = 0,
+// };
 
 static int spi_check_for_messages(void) {
     int signaled, result;
@@ -62,12 +67,14 @@ static int spi_slave_write(void) {
 	};
 
     k_poll_signal_reset(&spi_slave_done_sig);
-    int error = spi_transceive_signal(dev_spi, &spi_slave_cfg, &s_tx, &s_rx, &spi_slave_done_sig);
+    // int error = spi_transceive_signal(dev_spi, &spi_slave_cfg, &s_tx, &s_rx, &spi_slave_done_sig);
+    int error = spi_transceive_dt(&spi2, &s_tx, &s_rx);
 
 	if(error != 0){
 		printk("SPI slave transceive error: %i\n", error);
 		return error;
 	}
+	printk("Did SPI Thing");
     return 0;
 }
 
@@ -106,11 +113,11 @@ int main(void) {
         return 0;
     }
 
-    dev_spi = DEVICE_DT_GET(DT_CHOSEN(zephyr_spi));
-    if (dev_spi == NULL) {
-        printk("Could not get SPI device\n");
-        while(1);
-    }
+    // dev_spi = DEVICE_DT_GET(DT_CHOSEN(zephyr_spi));
+    // if (dev_spi == NULL) {
+    //     printk("Could not get SPI device\n");
+    //     return 0;
+    // }
 
     cfb_framebuffer_clear(display, true);
     display_blanking_off(display);

@@ -129,6 +129,12 @@
     status = "okay";
     pinctrl-0 = <&spim2_default>;
     pinctrl-names = "default";
+    mcp3201: mcp3201@0 {
+        compatible = "vnd,spi-device";
+        reg = <0>;
+        spi-max-frequency = <1600000>;
+        label = "mcp3201";
+    };
 };
 
 &spi3 {
