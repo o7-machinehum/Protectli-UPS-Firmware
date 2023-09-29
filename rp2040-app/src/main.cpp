@@ -165,7 +165,7 @@ void buckboost(void)
     int countdown = 1000;
 
     char uartbuf[32] = {};
-    sprintf(uartbuf, "Hello \r\n");
+    sprintf(uartbuf, "Hello\n");
     print_uart(uartbuf);
 
     while(true) {
@@ -199,9 +199,11 @@ void buckboost(void)
             if(state != BOOST) {
                 state = BOOST;
                 printk("Entering Boost State\n");
+#if defined(FORCE_PACK)
                 gpio_pin_set_dt(&pack_boot, true);
                 k_sleep(K_MSEC(100U));
                 gpio_pin_set_dt(&pack_boot, false);
+#endif
             }
 
             if(vbat > 20000.0) {
