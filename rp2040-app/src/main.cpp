@@ -11,6 +11,8 @@
 #include "adc.h"
 // #include "buck.h"
 
+#include "../../common/msg.h"
+
 #define PERIOD PWM_NSEC(2000) // 500Khz
 #define STACKSIZE 16384
 
@@ -96,7 +98,7 @@ void serial_cb(const struct device *dev, void *user_data)
 
 void print_uart(char *buf)
 {
-    int msg_len = strlen(buf);
+    int msg_len = sizeof(Msg);
 
     for (int i = 0; i < msg_len; i++) {
         uart_poll_out(uart_dev, buf[i]);
@@ -164,9 +166,15 @@ void buckboost(void)
     state = NONE;
     int countdown = 1000;
 
+    Msg msg = {
+        .voltage = 1000,
+        .current = 10,
+        .last_value = 30.3
+    };
+
     char uartbuf[32] = {};
-    sprintf(uartbuf, "Hello\n");
-    print_uart(uartbuf);
+    msg_encode(msg, uartbuf);
+    print_uart((char *) &msg);
 
     while(true) {
         if(!countdown--) {

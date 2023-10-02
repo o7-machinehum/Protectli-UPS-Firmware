@@ -6,6 +6,8 @@
 #include <zephyr/drivers/uart.h>
 #include <stdio.h>
 
+#include "../../common/msg.h"
+
 #define SLEEP_TIME_MS   5000
 #define LED0_NODE DT_ALIAS(led0)
 
@@ -30,7 +32,9 @@ static const struct device *const uart_dev
 
 /* receive buffer used in UART ISR callback */
 static char rx_buf[MSG_SIZE];
-static int rx_buf_pos;
+static int rx_buf_pos = 0;
+
+struct Msg msg = {};
 
 /*
  * Read characters from UART until line end is detected. Afterwards push the
@@ -47,23 +51,35 @@ void serial_cb(const struct device *dev, void *user_data)
     if (!uart_irq_rx_ready(uart_dev)) {
         return;
     }
+    while (uart_fifo_read(uart_dev, &c, 1) == 1) {
+        printk("int: %d\n", c);
+        *((uint8_t*)(&msg) + rx_buf_pos++) = c;
+        if(rx_buf_pos >= sizeof(struct Msg)) {
+            printk("thing: %d\n", msg.voltage);
+            printk("thing: %d\n", msg.current);
+        }
+    }
 
     /* read until FIFO empty */
-    while (uart_fifo_read(uart_dev, &c, 1) == 1) {
-        if ((c == '\n' || c == '\r') && rx_buf_pos > 0) {
-            /* terminate string */
-            rx_buf[rx_buf_pos] = '\0';
+    // while (uart_fifo_read(uart_dev, &c, 1) == 1) {
+    //     printk("%c", c);
+    //     if ((c == '\n' || c == '\r') && rx_buf_pos > 0) {
+    //         /* terminate string */
+    //         rx_buf[rx_buf_pos] = '\0';
 
-            /* if queue is full, message is silently dropped */
-            k_msgq_put(&uart_msgq, &rx_buf, K_NO_WAIT);
+    //         /* if queue is full, message is silently dropped */
+    //         k_msgq_put(&uart_msgq, &rx_buf, K_NO_WAIT);
 
-            /* reset the buffer (it was copied to the msgq) */
-            rx_buf_pos = 0;
-        } else if (rx_buf_pos < (sizeof(rx_buf) - 1)) {
-            rx_buf[rx_buf_pos++] = c;
-        }
-        /* else: characters beyond buffer size are dropped */
-    }
+    //         printk("rx_buf: %s\n", rx_buf);
+
+    //         /* reset the buffer (it was copied to the msgq) */
+    //         rx_buf_pos = 0;
+    //     } else if (rx_buf_pos < (sizeof(rx_buf) - 1)) {
+    //         printk("Add \n");
+    //         rx_buf[rx_buf_pos++] = c;
+    //     }
+    //     /* else: characters beyond buffer size are dropped */
+    // }
 }
 
 void print_uart(char *buf)
@@ -165,8 +181,10 @@ int main(void) {
         gpio_pin_toggle_dt(&led);
 
         if (!k_msgq_get(&uart_msgq, &tx_buf, K_NO_WAIT)) {
-            printk("Got some Data: %s\n", tx_buf);
+            printk("Data: %s", tx_buf);
         }
+
+        k_sleep(K_MSEC(100U));
 
     }
     return 0;

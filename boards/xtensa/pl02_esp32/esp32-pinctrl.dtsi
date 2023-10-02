@@ -36,8 +36,8 @@
 			pinmux = <UART2_TX_GPIO14>;
 		};
 		group2 {
-			pinmux = <UART2_RX_GPIO12>;
-			bias-pull-up;
+			pinmux = <UART2_RX_GPIO26>;
+			// bias-pull-up;
 		};
 	};
 
