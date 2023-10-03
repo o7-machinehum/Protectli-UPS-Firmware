@@ -55,8 +55,8 @@ void serial_cb(const struct device *dev, void *user_data)
         printk("int: %d\n", c);
         *((uint8_t*)(&msg) + rx_buf_pos++) = c;
         if(rx_buf_pos >= sizeof(struct Msg)) {
-            printk("thing: %d\n", msg.voltage);
-            printk("thing: %d\n", msg.current);
+            // printk("thing: %d\n", msg.voltage);
+            // printk("thing: %d\n", msg.current);
         }
     }
 

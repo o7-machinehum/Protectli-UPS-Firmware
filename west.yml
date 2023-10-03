@@ -9,11 +9,13 @@ manifest:
     - name: zephyrproject-rtos
       url-base: https://github.com/zephyrproject-rtos
 
+    - name: zephyrproject-rtos-walker
+      url-base: https://github.com/o7-machinehum
+
   projects:
     - name: zephyr
-      remote: zephyrproject-rtos
-      revision: zephyr-v3.4.0
-      # revision: main
+      remote: zephyrproject-rtos-walker
+      revision: cfb-rotate
       import:
         # By using name-allowlist we can clone only the modules that are
         # strictly needed by the application.
