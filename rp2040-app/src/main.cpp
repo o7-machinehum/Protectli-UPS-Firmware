@@ -29,12 +29,6 @@ static const struct gpio_dt_spec vin_detect = GPIO_DT_SPEC_GET(DT_ALIAS(vin_dete
 
 static const struct gpio_dt_spec pack_boot = GPIO_DT_SPEC_GET(DT_ALIAS(pack_boot), gpios);
 
-// static const struct gpio_dt_spec gpio0 =
-//     GPIO_DT_SPEC_GET(DT_ALIAS(gpio_0), gpios);
-//
-// static const struct gpio_dt_spec gpio1 =
-//     GPIO_DT_SPEC_GET(DT_ALIAS(gpio_1), gpios);
-
 static const struct gpio_dt_spec gpio2 = GPIO_DT_SPEC_GET(DT_ALIAS(gpio_2), gpios);
 
 static const struct gpio_dt_spec gpio3 = GPIO_DT_SPEC_GET(DT_ALIAS(gpio_3), gpios);
@@ -115,8 +109,7 @@ void buckboost(void)
 
 	HwErrors hw_errors;
 	Pid buck_pid(12.0, 0.03, 0.0001, 0.0);
-	// Pid boost_pid(500.0, 0.0007, 0.000001, 0.0); // 500mA current target
-	Bump boost_pid(500.0, 0.00000001);
+	Bump boost_algo(500.0, 0.740, 0.000001);
 	gpio_pin_configure_dt(&pwm_en, GPIO_OUTPUT_INACTIVE);
 	gpio_pin_configure_dt(&pack_boot, GPIO_OUTPUT);
 	gpio_pin_configure_dt(&pwm_skip, GPIO_OUTPUT_ACTIVE);
@@ -130,7 +123,7 @@ void buckboost(void)
 	k_sleep(K_MSEC(1000));
 
 	Adc adc;
-	print_voltages(adc, 0.00, boost_pid);
+	print_voltages(adc, 0.00, boost_algo);
 
 	if (!device_is_ready(pwm.dev)) {
 		printk("Error: PWM device %s is not ready\n", pwm.dev->name);
@@ -167,7 +160,7 @@ void buckboost(void)
 		if (!countdown--) {
 			ret = hw_errors.errors();
 			countdown = 1000;
-			print_voltages(adc, drive, boost_pid);
+			print_voltages(adc, drive, boost_algo);
 		}
 
 		// Buck State
@@ -180,13 +173,6 @@ void buckboost(void)
 			vout = vout / 1000;
 			buck_pid.compute(vout);
 			drive = buck_pid.get_duc();
-
-			if (drive >= 0.85) {
-				drive = 0.85;
-			}
-			if (drive <= 0.02) {
-				drive = 0.02;
-			}
 
 			gpio_pin_set_dt(&pwm_en, true);
 			pwm_set_dt(&pwm, PERIOD, PERIOD * drive);
@@ -203,24 +189,8 @@ void buckboost(void)
 #endif
 			}
 
-			if (vbat > 20000.0) {
-				gpio_pin_set_dt(&pwm_en, false);
-				printk("Safety Trip\n");
-				while (1) {
-				};
-			}
-
-			boost_pid.compute_boost(adc.read_ibat());
-			drive = -0.25 * boost_pid.get_duc() + 1;
-
-			if (drive >= 0.85) {
-				drive = 0.85;
-			}
-			if (drive <= 0.02) {
-				drive = 0.02;
-			}
-
-			drive = 0.740;
+			boost_algo.compute_boost(adc.read_ibat());
+			drive = boost_algo.get_duc();
 
 			pwm_set_dt(&pwm, PERIOD, PERIOD * drive);
 			gpio_pin_set_dt(&pwm_en, true);

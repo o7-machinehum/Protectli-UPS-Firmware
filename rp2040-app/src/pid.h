@@ -34,12 +34,11 @@ class Pid
 class Bump
 {
 	float target;
-	float bump_sum;
 	float bump_amt;
 	float drive;
 
       public:
-	Bump(float target, float bump_amt);
+	Bump(float target, float initial_value, float bump_amt);
 	float compute_boost(float actual);
 
 	float get_duc()

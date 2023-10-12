@@ -23,7 +23,6 @@ float Pid::compute(float actual)
 	float e = target - actual;
 	float dt = (t - t_prev) / 125e6;
 	float de = e - e_prev;
-	float integral = (de / 2) * dt;
 	float derivatave = (e - e_prev) / dt;
 	e_sum += e;
 
@@ -33,58 +32,38 @@ float Pid::compute(float actual)
 
 	drive = (e * kp) + (e_sum * ki) + (derivatave * kd);
 
-	if (drive > MAX_DRIVE) {
-		drive = MAX_DRIVE;
+	if (drive >= 0.85) {
+		drive = 0.85;
 	}
+
+	if (drive <= 0.02) {
+		drive = 0.02;
+	}
+
 
 	e_prev = e;
 	t_prev = t;
 	return drive;
 }
 
-float Pid::compute_boost(float actual)
-{
-	uint32_t t = k_cycle_get_32();
-	float e = target - actual;
-	float dt = (t - t_prev) / 125e6;
-	float de = e - e_prev;
-	float integral = (de / 2) * dt;
-	float derivatave = (e - e_prev) / dt;
-	e_sum += e / 10;
 
-	// printk("%f\n", e_sum);
-
-	if (e_sum < INTEGRATOR_WINDUP_NEG) {
-		e_sum = INTEGRATOR_WINDUP_NEG;
-	} else if (e_sum > INTEGRATOR_WINDUP_POS) {
-		e_sum = INTEGRATOR_WINDUP_POS;
-	}
-
-	drive = (e * kp) + (e_sum * ki) + (derivatave * kd);
-
-	if (drive > MAX_DRIVE) {
-		drive = MAX_DRIVE;
-	}
-
-	e_prev = e;
-	t_prev = t;
-	return drive;
-}
-
-Bump::Bump(float target, float bump_amt) : target(target), bump_sum(0), bump_amt(bump_amt), drive(0)
+Bump::Bump(float target, float initial_value, float bump_amt)
+	: target(target), bump_amt(bump_amt), drive(initial_value)
 {
 }
 
 float Bump::compute_boost(float actual)
 {
-	bump_sum += (target - actual);
-	drive = bump_sum * bump_amt;
+    if(target < actual)
+	    drive += bump_amt;
+    else
+	    drive -= bump_amt;
 
-	if (drive < 0) {
-		drive = 0;
+	if (drive >= 0.85) {
+	    drive = 0.85;
 	}
-	if (drive > 1) {
-		drive = 1;
+	if (drive <= 0.02) {
+        drive = 0.02;
 	}
 
 	return drive;
