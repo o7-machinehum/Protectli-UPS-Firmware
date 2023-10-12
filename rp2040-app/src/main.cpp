@@ -158,11 +158,10 @@ void buckboost(void)
 	state = NONE;
 	int countdown = 1000;
 
-	Msg msg = {.voltage = 1000, .current = 10, .last_value = 30.3};
-
-	char uartbuf[32] = {};
-	msg_encode(msg, uartbuf);
-	print_uart((char *)&msg);
+	// Msg msg = {.voltage = 1000, .current = 10, .last_value = 30.3};
+	// char uartbuf[32] = {};
+	// msg_encode(msg, uartbuf);
+	// print_uart((char *)&msg);
 
 	while (true) {
 		if (!countdown--) {
@@ -197,7 +196,7 @@ void buckboost(void)
 			if (state != BOOST) {
 				state = BOOST;
 				printk("Entering Boost State\n");
-#if defined(FORCE_PACK)
+#if defined(CONFIG_FORCE_PACK)
 				gpio_pin_set_dt(&pack_boot, true);
 				k_sleep(K_MSEC(100U));
 				gpio_pin_set_dt(&pack_boot, false);
@@ -221,7 +220,7 @@ void buckboost(void)
 				drive = 0.02;
 			}
 
-			drive = 0.770;
+			drive = 0.740;
 
 			pwm_set_dt(&pwm, PERIOD, PERIOD * drive);
 			gpio_pin_set_dt(&pwm_en, true);

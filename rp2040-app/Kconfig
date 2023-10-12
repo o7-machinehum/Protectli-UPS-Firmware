@@ -1,0 +1,10 @@
+mainmenu "Config for RP2040 UPS Code"
+
+config FORCE_PACK
+	bool "Connect battery pack on boot?"
+	default y
+	help
+	  Do you want the battery pack to be connected
+	  on boot if 12V input signal is applied?
+
+source "Kconfig.zephyr"
