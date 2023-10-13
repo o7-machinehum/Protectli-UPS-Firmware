@@ -103,7 +103,7 @@ uint8_t check_faults(uint8_t *fault_counter)
 	if (ret) {
 		gpio_set(PORT_LED, PIN_LED1);
 		delay(1e6);
-		if (*fault_counter <= 10) {
+		if (*fault_counter < 10) {
 			bq76920_clear_faults();
 			bq76920_output_enable();
 			(*fault_counter)++;
@@ -147,15 +147,42 @@ int main(void)
 	bq76920_output_enable();
 
 	while (1) {
-		sprintf(buf, "C0: %dmV C1: %dmV C2: %dmV C3: %dmV\n\r",
-			bq76920_read_cell_v(0), bq76920_read_cell_v(1),
-			bq76920_read_cell_v(2), bq76920_read_cell_v(4));
+		uint16_t c0 = bq76920_read_cell_v(CELL0);
+		uint16_t c1 = bq76920_read_cell_v(CELL1);
+		uint16_t c2 = bq76920_read_cell_v(CELL2);
+		uint16_t c3 = bq76920_read_cell_v(CELL3);
+
+		uint8_t bal = bq76920_balance_cells(c0, c1, c2, c3);
+		sprintf(buf, "C0: %dmV C1: %dmV C2: %dmV C3: %dmV | Balance: %d\n\r",c0, c1, c2, c3, bal);
 		uart_out(buf);
 
 		ret = check_faults(&fault_counter);
 		if (ret) {
-			sprintf(buf, "Fault: %d, Fault Counter: %d\n\r", ret,
-				fault_counter);
+			if (ret & SYS_STAT_OCD) {
+				sprintf(buf, "Fault: SYS_STAT_OCD\n\r");
+				uart_out(buf);
+			}
+			if (ret & SYS_STAT_SCD) {
+				sprintf(buf, "Fault: SYS_STAT_SCD\n\r");
+				uart_out(buf);
+			}
+			if (ret & SYS_STAT_OV) {
+				sprintf(buf, "Fault: SYS_STAT_OV\n\r");
+				uart_out(buf);
+			}
+			if (ret & SYS_STAT_UV) {
+				sprintf(buf, "Fault: SYS_STAT_UV\n\r");
+				uart_out(buf);
+			}
+			if (ret & SYS_STAT_OVRD_ALERT) {
+				sprintf(buf, "Fault: SYS_STAT_OVRD_ALERT\n\r");
+				uart_out(buf);
+			}
+			if (ret & SYS_STAT_DEVICE_XREADY) {
+				sprintf(buf, "Fault: SYS_STAT_DEVICE_XREADY\n\r");
+				uart_out(buf);
+			}
+			sprintf(buf, "Fault Counter: %d\n\r", fault_counter);
 			uart_out(buf);
 		}
 

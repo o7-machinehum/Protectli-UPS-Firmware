@@ -35,6 +35,11 @@
 #define BAT_HI 0x2A
 #define BAT_LO 0x2B
 
+#define CELL0 0
+#define CELL1 1
+#define CELL2 2
+#define CELL3 4
+
 static int8_t adc_offset;
 static uint16_t adc_gain;
 
@@ -47,6 +52,7 @@ void bq76920_set_ov(int voltage_mv);
 void bq76920_clear_faults(void);
 uint16_t bq76920_read_cell_v(uint8_t call);
 void bq76920_shutdown(void);
+uint8_t bq76920_balance_cells(uint16_t c0, uint16_t c1, uint16_t c2, uint16_t c3);
 
 void bq76920_write_reg(uint8_t reg, uint8_t val)
 {
@@ -99,11 +105,12 @@ void bq76920_init()
 	bq76920_set_ov(4300);                           // V / Cell
 	bq76920_write_reg(SYS_CTRL1, SYS_CTRL1_ADC_EN); // ADC_EN = 1
 
-	bq76920_write_reg(CELLBAL1, 0b00011111);
-
+	bq76920_write_reg(CELLBAL1, 0x00);
 	bq76920_write_reg(PROTECT1, PROTECT1_SCD_T0);
 	// PROTECT2 Left at default settings (8A Over Current)
 }
+
+
 
 void bq76920_clear_faults(void)
 {
@@ -127,4 +134,19 @@ uint16_t bq76920_read_cell_v(uint8_t cell)
 	v |= (bq76920_read_reg(VC1_HI + cell) << 8);
 
 	return (v * adc_gain / 1000) + adc_offset;
+}
+
+uint8_t bq76920_balance_cells(uint16_t c0, uint16_t c1, uint16_t c2, uint16_t c3) {
+	uint8_t bal = 0;
+	if(c0 > 4200)
+		bal = 1 << CELL0;
+	if(c1 > 4200)
+		bal = 1 << CELL1;
+	if(c2 > 4200)
+		bal = 1 << CELL2;
+	if(c3 > 4200)
+		bal = 1 << CELL3;
+
+	bq76920_write_reg(CELLBAL1, bal);
+	return bal;
 }
