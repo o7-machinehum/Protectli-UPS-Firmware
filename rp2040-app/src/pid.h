@@ -30,19 +30,3 @@ class Pid
 		return drive;
 	}
 };
-
-class Bump
-{
-	float target;
-	float bump_amt;
-	float drive;
-
-      public:
-	Bump(float target, float initial_value, float bump_amt);
-	float compute_boost(float actual);
-
-	float get_duc()
-	{
-		return drive;
-	}
-};

@@ -9,7 +9,7 @@
 #include "hw_errors.h"
 #include "pid.h"
 #include "adc.h"
-// #include "buck.h"
+#include "battery.h"
 
 #include "../../common/msg.h"
 
@@ -35,13 +35,12 @@ static const struct gpio_dt_spec gpio3 = GPIO_DT_SPEC_GET(DT_ALIAS(gpio_3), gpio
 
 static const struct device *const uart_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_mcu_uart));
 
-void print_voltages(Adc adc, float drive, Bump pid)
+void print_voltages(Adc adc, float drive)
 {
 	printk("Vout : %d mV\t", adc.read_vout());
 	printk("Vbat : %d mV\t", adc.read_vbat());
 	printk("Iout : %d mA\t", adc.read_iout());
 	printk("Ibat : %d mA\t", adc.read_ibat());
-	printk("Boost: %f  \t", pid.get_duc());
 	printk("Drve : %f\n", drive);
 }
 
@@ -109,7 +108,7 @@ void buckboost(void)
 
 	HwErrors hw_errors;
 	Pid buck_pid(12.0, 0.03, 0.0001, 0.0);
-	Bump boost_algo(500.0, 0.740, 0.000001);
+	Battery battery(16.8, 500.0, 0.740, 0.000001);
 	gpio_pin_configure_dt(&pwm_en, GPIO_OUTPUT_INACTIVE);
 	gpio_pin_configure_dt(&pack_boot, GPIO_OUTPUT);
 	gpio_pin_configure_dt(&pwm_skip, GPIO_OUTPUT_ACTIVE);
@@ -123,7 +122,7 @@ void buckboost(void)
 	k_sleep(K_MSEC(1000));
 
 	Adc adc;
-	print_voltages(adc, 0.00, boost_algo);
+	print_voltages(adc, 0.00);
 
 	if (!device_is_ready(pwm.dev)) {
 		printk("Error: PWM device %s is not ready\n", pwm.dev->name);
@@ -160,7 +159,7 @@ void buckboost(void)
 		if (!countdown--) {
 			ret = hw_errors.errors();
 			countdown = 1000;
-			print_voltages(adc, drive, boost_algo);
+			print_voltages(adc, drive);
 		}
 
 		// Buck State
@@ -189,9 +188,7 @@ void buckboost(void)
 #endif
 			}
 
-			boost_algo.compute_boost(adc.read_ibat());
-			drive = boost_algo.get_duc();
-
+			drive = battery.compute_drive(adc.read_vbat(), adc.read_ibat());
 			pwm_set_dt(&pwm, PERIOD, PERIOD * drive);
 			gpio_pin_set_dt(&pwm_en, true);
 		}

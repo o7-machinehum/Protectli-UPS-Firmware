@@ -45,26 +45,3 @@ float Pid::compute(float actual)
 	t_prev = t;
 	return drive;
 }
-
-
-Bump::Bump(float target, float initial_value, float bump_amt)
-	: target(target), bump_amt(bump_amt), drive(initial_value)
-{
-}
-
-float Bump::compute_boost(float actual)
-{
-    if(target < actual)
-	    drive += bump_amt;
-    else
-	    drive -= bump_amt;
-
-	if (drive >= 0.85) {
-	    drive = 0.85;
-	}
-	if (drive <= 0.02) {
-        drive = 0.02;
-	}
-
-	return drive;
-}
