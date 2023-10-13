@@ -1,4 +1,5 @@
 #include "bq76920.h"
+#include "bq76920_config.h"
 #include "stdint.h"
 #include <libopencm3/stm32/i2c.h>
 
@@ -52,8 +53,8 @@ void bq76920_init()
 	adc_gain = 365 + (((bq76920_read_reg(ADCGAIN1) & 0b00001100) << 1) |
 			  ((bq76920_read_reg(ADCGAIN2) & 0b11100000) >> 5));
 
-	bq76920_set_uv(2900);                           // V / Cell
-	bq76920_set_ov(4300);                           // V / Cell
+	bq76920_set_uv(UV_MV);                           // V / Cell
+	bq76920_set_ov(OV_MV);                           // V / Cell
 	bq76920_write_reg(SYS_CTRL1, SYS_CTRL1_ADC_EN); // ADC_EN = 1
 
 	bq76920_write_reg(CELLBAL1, 0x00);
@@ -99,13 +100,13 @@ uint8_t bq76920_balance_cells(struct cells *c) {
 	uint8_t bal = 0;
     uint16_t lowest_cell_v;
 
-	if(c->c0 > 4200)
+	if(c->c0 > BAL_V_MV)
 		bal = 1 << CELL0;
-	if(c->c1 > 4200)
+	if(c->c1 > BAL_V_MV)
 		bal |= 1 << CELL1;
-	if(c->c2 > 4200)
+	if(c->c2 > BAL_V_MV)
 		bal |= 1 << CELL2;
-	if(c->c3 > 4200)
+	if(c->c3 > BAL_V_MV)
 		bal |= 1 << CELL3;
 
 	bq76920_write_reg(CELLBAL1, bal);

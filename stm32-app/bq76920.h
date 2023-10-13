@@ -49,7 +49,6 @@ struct cells {
     uint16_t c3;
 };
 
-
 void bq76920_write_reg(uint8_t reg, uint8_t val);
 uint8_t bq76920_read_reg(uint8_t reg);
 void bq76920_init(void);
