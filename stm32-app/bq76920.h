@@ -40,6 +40,13 @@
 #define CELL2 2
 #define CELL3 4
 
+struct cells {
+    uint16_t c0;
+    uint16_t c1;
+    uint16_t c2;
+    uint16_t c3;
+};
+
 static int8_t adc_offset;
 static uint16_t adc_gain;
 
@@ -51,8 +58,9 @@ void bq76920_set_uv(int voltage_mv);
 void bq76920_set_ov(int voltage_mv);
 void bq76920_clear_faults(void);
 uint16_t bq76920_read_cell_v(uint8_t call);
+void bq76920_read_cells_v(struct cells *c);
 void bq76920_shutdown(void);
-uint8_t bq76920_balance_cells(uint16_t c0, uint16_t c1, uint16_t c2, uint16_t c3);
+uint8_t bq76920_balance_cells(struct cells *c);
 
 void bq76920_write_reg(uint8_t reg, uint8_t val)
 {
@@ -136,16 +144,27 @@ uint16_t bq76920_read_cell_v(uint8_t cell)
 	return (v * adc_gain / 1000) + adc_offset;
 }
 
-uint8_t bq76920_balance_cells(uint16_t c0, uint16_t c1, uint16_t c2, uint16_t c3) {
+void bq76920_read_cells_v(struct cells *c)
+{
+	c->c0 = bq76920_read_cell_v(CELL0);
+	c->c1 = bq76920_read_cell_v(CELL1);
+	c->c2 = bq76920_read_cell_v(CELL2);
+	c->c3 = bq76920_read_cell_v(CELL3);
+}
+
+uint8_t bq76920_balance_cells(struct cells *c) {
 	uint8_t bal = 0;
-	if(c0 > 4200)
+    uint16_t lowest_cell_v;
+
+
+	if(c->c0 > 4200)
 		bal = 1 << CELL0;
-	if(c1 > 4200)
-		bal = 1 << CELL1;
-	if(c2 > 4200)
-		bal = 1 << CELL2;
-	if(c3 > 4200)
-		bal = 1 << CELL3;
+	if(c->c1 > 4200)
+		bal |= 1 << CELL1;
+	if(c->c2 > 4200)
+		bal |= 1 << CELL2;
+	if(c->c3 > 4200)
+		bal |= 1 << CELL3;
 
 	bq76920_write_reg(CELLBAL1, bal);
 	return bal;

@@ -146,14 +146,12 @@ int main(void)
 	bq76920_clear_faults();
 	bq76920_output_enable();
 
-	while (1) {
-		uint16_t c0 = bq76920_read_cell_v(CELL0);
-		uint16_t c1 = bq76920_read_cell_v(CELL1);
-		uint16_t c2 = bq76920_read_cell_v(CELL2);
-		uint16_t c3 = bq76920_read_cell_v(CELL3);
+	struct cells c = {};
 
-		uint8_t bal = bq76920_balance_cells(c0, c1, c2, c3);
-		sprintf(buf, "C0: %dmV C1: %dmV C2: %dmV C3: %dmV | Balance: %d\n\r",c0, c1, c2, c3, bal);
+	while (1) {
+		bq76920_read_cells_v(&c);
+		uint8_t bal = bq76920_balance_cells(&c);
+		sprintf(buf, "C0: %dmV C1: %dmV C2: %dmV C3: %dmV | Balance: %d\n\r",c.c0, c.c1, c.c2, c.c3, bal);
 		uart_out(buf);
 
 		ret = check_faults(&fault_counter);
