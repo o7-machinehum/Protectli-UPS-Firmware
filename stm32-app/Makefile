@@ -20,7 +20,7 @@
 BINARY = main
 CSTD = -std=gnu99
 
-OBJS = printf.o
+OBJS = printf.o bq76920.o
 
 LDSCRIPT = nucleo-g030f6.ld
 LIBNAME		= opencm3_stm32g0
