@@ -1,11 +1,26 @@
 #define I2C_ADDR 0x18
 
-#define SYS_STAT 0x00
+#define SYS_STAT               0x00
+#define SYS_STAT_OCD           (1 << 0)
+#define SYS_STAT_SCD           (1 << 1)
+#define SYS_STAT_OV            (1 << 2)
+#define SYS_STAT_UV            (1 << 3)
+#define SYS_STAT_OVRD_ALERT    (1 << 4)
+#define SYS_STAT_DEVICE_XREADY (1 << 5)
+
 #define CELLBAL1 0x01
 
-#define SYS_CTRL1 0x04
-#define SYS_CTRL2 0x05
-#define PROTECT1  0x06
+#define SYS_CTRL1        0x04
+#define SYS_CTRL1_SHUT_B (1 << 0)
+#define SYS_CTRL1_SHUT_A (1 << 1)
+#define SYS_CTRL1_ADC_EN (1 << 4)
+
+#define SYS_CTRL2        0x05
+#define SYS_CTRL2_CHG_ON (1 << 0)
+#define SYS_CTRL2_DSG_ON (1 << 1)
+
+#define PROTECT1        0x06
+#define PROTECT1_SCD_T0 (1 << 0)
 
 #define OV_TRIP   0x09
 #define UV_TRIP   0x0A
@@ -69,7 +84,8 @@ void bq76920_set_ov(int voltage_mv)
 
 void bq76920_output_enable(void)
 {
-	bq76920_write_reg(SYS_CTRL2, 0b00000011);
+
+	bq76920_write_reg(SYS_CTRL2, (SYS_CTRL2_CHG_ON | SYS_CTRL2_DSG_ON));
 }
 
 void bq76920_init()
@@ -79,26 +95,27 @@ void bq76920_init()
 	adc_gain = 365 + (((bq76920_read_reg(ADCGAIN1) & 0b00001100) << 1) |
 			  ((bq76920_read_reg(ADCGAIN2) & 0b11100000) >> 5));
 
-	bq76920_set_uv(2900);                     // 3V / Cell
-	bq76920_set_ov(4200);                     // 4.2V / Cell
-	bq76920_write_reg(SYS_CTRL1, 0b00010000); // ADC_EN = 1
+	bq76920_set_uv(2900);                           // V / Cell
+	bq76920_set_ov(4300);                           // V / Cell
+	bq76920_write_reg(SYS_CTRL1, SYS_CTRL1_ADC_EN); // ADC_EN = 1
 
-	// bq76920_write_reg(CELLBAL1, 0b00010111);
-	bq76920_write_reg(CELLBAL1, 0x00);
+	bq76920_write_reg(CELLBAL1, 0b00011111);
 
-	bq76920_write_reg(PROTECT1, 0b00000001);
+	bq76920_write_reg(PROTECT1, PROTECT1_SCD_T0);
 	// PROTECT2 Left at default settings (8A Over Current)
 }
 
 void bq76920_clear_faults(void)
 {
-	bq76920_write_reg(SYS_STAT, 0b00111111);
+	bq76920_write_reg(SYS_STAT, (SYS_STAT_OCD | SYS_STAT_SCD | SYS_STAT_OV |
+				     SYS_STAT_UV | SYS_STAT_OVRD_ALERT |
+				     SYS_STAT_DEVICE_XREADY));
 }
 
 void bq76920_shutdown(void)
 {
-	bq76920_write_reg(SYS_CTRL1, 0b00000001);
-	bq76920_write_reg(SYS_CTRL1, 0b00000010);
+	bq76920_write_reg(SYS_CTRL1, SYS_CTRL1_SHUT_B);
+	bq76920_write_reg(SYS_CTRL1, SYS_CTRL1_SHUT_A);
 }
 
 uint16_t bq76920_read_cell_v(uint8_t cell)

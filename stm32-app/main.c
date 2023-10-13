@@ -147,10 +147,9 @@ int main(void)
 	bq76920_output_enable();
 
 	while (1) {
-		sprintf(buf, "C0: %d C1: %d C2: %d C3: %d C4: %d C5: %d\n\r",
+		sprintf(buf, "C0: %dmV C1: %dmV C2: %dmV C3: %dmV\n\r",
 			bq76920_read_cell_v(0), bq76920_read_cell_v(1),
-			bq76920_read_cell_v(2), bq76920_read_cell_v(3),
-			bq76920_read_cell_v(4), bq76920_read_cell_v(5));
+			bq76920_read_cell_v(2), bq76920_read_cell_v(4));
 		uart_out(buf);
 
 		ret = check_faults(&fault_counter);
