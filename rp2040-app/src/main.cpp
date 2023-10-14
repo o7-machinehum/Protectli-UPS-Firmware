@@ -13,7 +13,7 @@
 
 #include "../../common/msg.h"
 
-#define PERIOD    PWM_NSEC(2000) // 500Khz
+#define PERIOD    PWM_NSEC(2500) // 500Khz
 #define STACKSIZE 16384
 
 #define MSG_SIZE 32
@@ -108,7 +108,7 @@ void buckboost(void)
 
 	HwErrors hw_errors;
 	Pid buck_pid(12.0, 0.03, 0.0001, 0.0);
-	Battery battery(16.8, 500.0, 0.740, 0.000001);
+	Battery battery(16.7, 200.0, 0.740, 0.000001);
 	gpio_pin_configure_dt(&pwm_en, GPIO_OUTPUT_INACTIVE);
 	gpio_pin_configure_dt(&pack_boot, GPIO_OUTPUT);
 	gpio_pin_configure_dt(&pwm_skip, GPIO_OUTPUT_ACTIVE);

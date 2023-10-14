@@ -10,6 +10,6 @@ class Battery
 
       public:
 	Battery(float target_voltage, float target_current, float initial_value,
-		float bump_amt);
+		float bump_amt, bool dynamic_current);
 	float compute_drive(float v, float i);
 };
