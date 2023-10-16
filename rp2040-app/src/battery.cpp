@@ -1,12 +1,10 @@
 #include <string.h>
 #include "battery.h"
 
-Battery::Battery(float target_voltage, float target_current,
-		 float initial_value, float bump_amt)
-	: target_i(target_current), bump_amt(bump_amt), drive(initial_value)
-{
-	target_v = target_voltage * 1000;
-}
+Battery::Battery()
+: bump_amt(0.000001), drive(0.740)
+{}
+
 
 float Battery::compute_drive(float v, float i)
 {
@@ -19,8 +17,10 @@ float Battery::compute_drive(float v, float i)
 	if (drive >= 0.85) {
 		drive = 0.85;
 	}
-	if (drive <= 0.02) {
-		drive = 0.02;
+
+	// If the drive have dipped below this amount, something has happened.
+	if (drive <= 0.65) {
+		drive = 0.740;
 	}
 
 	return drive;

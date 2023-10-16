@@ -32,8 +32,8 @@ float Pid::compute(float actual)
 
 	drive = (e * kp) + (e_sum * ki) + (derivatave * kd);
 
-	if (drive >= 0.85) {
-		drive = 0.85;
+	if (drive >= 0.90) {
+		drive = 0.90;
 	}
 
 	if (drive <= 0.02) {

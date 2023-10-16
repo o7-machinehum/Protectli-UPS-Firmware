@@ -112,7 +112,7 @@ zephyr_udc0: &usbd {
     pinctrl-0 = <&pwm_default>;
     pinctrl-names = "default";
     divider-int-2 = <1>;
-    divider-frac-2 = <1>;
+    divider-frac-2 = <4>;
 };
 
 &vreg {

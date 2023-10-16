@@ -9,7 +9,16 @@ class Battery
 	float drive;
 
       public:
-	Battery(float target_voltage, float target_current, float initial_value,
-		float bump_amt, bool dynamic_current);
+	Battery();
 	float compute_drive(float v, float i);
+
+	Battery &setVoltage(float v) {
+		target_v = v * 1000;
+		return *this;
+	}
+
+	Battery &setCurrent(float i) {
+		target_i = i;
+		return *this;
+	}
 };
