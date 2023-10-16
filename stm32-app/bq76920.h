@@ -23,6 +23,7 @@
 
 #define PROTECT1        0x06
 #define PROTECT1_SCD_T0 (1 << 0)
+#define PROTECT1_SCD_T1 (1 << 1)
 
 #define OV_TRIP   0x09
 #define UV_TRIP   0x0A

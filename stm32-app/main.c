@@ -69,6 +69,10 @@ static void gpio_setup(void)
 	gpio_mode_setup(PORT_LED, GPIO_MODE_OUTPUT, GPIO_PUPD_NONE,
 			PIN_LED1 | PIN_LED2);
 
+	// Shutdown buttons
+	gpio_mode_setup(GPIOA, GPIO_MODE_INPUT, GPIO_PUPD_PULLUP, GPIO13);
+
+	// allert
 	gpio_mode_setup(GPIOB, GPIO_MODE_INPUT, GPIO_PUPD_NONE, GPIO8);
 }
 
@@ -184,6 +188,11 @@ int main(void)
 			uart_out(buf);
 		}
 
+		if(!gpio_get(GPIOA, GPIO13)) {
+			sprintf(buf, "Shutting down\n\r");
+			uart_out(buf);
+			bq76920_shutdown();
+		}
 		gpio_toggle(PORT_LED, PIN_LED2);
 		delay(5e6);
 	}

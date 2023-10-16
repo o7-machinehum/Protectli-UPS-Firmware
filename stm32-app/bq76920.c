@@ -58,7 +58,7 @@ void bq76920_init()
 	bq76920_write_reg(SYS_CTRL1, SYS_CTRL1_ADC_EN); // ADC_EN = 1
 
 	bq76920_write_reg(CELLBAL1, 0x00);
-	bq76920_write_reg(PROTECT1, PROTECT1_SCD_T0);
+	bq76920_write_reg(PROTECT1, PROTECT1_SCD_T1);
 	// PROTECT2 Left at default settings (8A Over Current)
 }
 

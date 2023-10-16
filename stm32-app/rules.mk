@@ -246,7 +246,7 @@ ifeq ($(OOCD_FILE),)
 	(echo "halt; program $(realpath $(*).elf) verify reset" | nc -4 localhost 4444 2>/dev/null) || \
 		$(OOCD) -f interface/$(OOCD_INTERFACE).cfg \
 		-f target/$(OOCD_TARGET).cfg \
-		-c "program $(*).elf verify reset exit"
+		-c "reset_config srst_only connect_assert_srst; program $(*).elf verify reset exit"
 else
 %.flash: %.elf
 	@printf "  FLASH   $<\n"
