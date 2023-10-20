@@ -2,7 +2,7 @@
 #include "battery.h"
 
 Battery::Battery()
-: bump_amt(0.000001), drive(0.740)
+: bump_amt(0.000001), initial_drive(0.780), drive(initial_drive)
 {}
 
 
@@ -20,7 +20,7 @@ float Battery::compute_drive(float v, float i)
 
 	// If the drive have dipped below this amount, something has happened.
 	if (drive <= 0.65) {
-		drive = 0.740;
+		drive = initial_drive;
 	}
 
 	return drive;

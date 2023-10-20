@@ -2,10 +2,11 @@
 
 cmake_minimum_required(VERSION 3.20.0)
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
-project(blinky)
+project(protecli_ups_rp2040)
 
 FILE(GLOB app_sources
     src/*.cpp
 )
 
 target_sources(app PRIVATE ${app_sources})
+include(${CMAKE_CURRENT_SOURCE_DIR}/../common/CMakeLists.txt)

@@ -9,4 +9,4 @@ FILE(GLOB app_sources
 )
 
 target_sources(app PRIVATE ${app_sources})
-
+# target_link_libraries(app PRIVATE common)

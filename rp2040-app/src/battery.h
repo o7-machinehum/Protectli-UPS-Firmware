@@ -6,6 +6,7 @@ class Battery
 	int target_v;   // mV
 	float target_i; // mA
 	float bump_amt;
+	float initial_drive;
 	float drive;
 
       public:

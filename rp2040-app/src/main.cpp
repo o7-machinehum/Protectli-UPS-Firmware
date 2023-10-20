@@ -11,10 +11,12 @@
 #include "adc.h"
 #include "battery.h"
 
-#include "../../common/msg.h"
+extern "C" {
+#include <msg.h>
+}
 
 #define PERIOD    PWM_NSEC(2500) // 500Khz
-#define STACKSIZE 16384
+#define STACKSIZE 32768
 
 #define MSG_SIZE 32
 K_MSGQ_DEFINE(uart_msgq, MSG_SIZE, 10, 4);
@@ -82,10 +84,8 @@ void serial_cb(const struct device *dev, void *user_data)
 	}
 }
 
-void print_uart(char *buf)
+void print_uart(char *buf, uint8_t msg_len)
 {
-	int msg_len = sizeof(Msg);
-
 	for (int i = 0; i < msg_len; i++) {
 		uart_poll_out(uart_dev, buf[i]);
 	}
@@ -103,6 +103,8 @@ void buckboost(void)
 	int ret = 0;
 	float drive;
 	float vout = 0, vbat = 0;
+	char uartbuf[64] = {};
+	Msg msg = {.voltage = 1120, .current = 1230};
 
 	printk("~~~ Protectli UPS ~~~\n");
 
@@ -111,7 +113,7 @@ void buckboost(void)
 
 	Battery battery = Battery()
 		.setVoltage(16.7)
-		.setCurrent(200.0);
+		.setCurrent(800.0);
 
 	battery.setVoltage(16.7);
 
@@ -120,8 +122,6 @@ void buckboost(void)
 	gpio_pin_configure_dt(&pwm_skip, GPIO_OUTPUT_ACTIVE);
 	gpio_pin_configure_dt(&vin_detect, GPIO_INPUT);
 
-	// gpio_pin_configure_dt(&gpio0, GPIO_DISCONNECTED);
-	// gpio_pin_configure_dt(&gpio1, GPIO_DISCONNECTED);
 	gpio_pin_configure_dt(&gpio2, GPIO_DISCONNECTED);
 	gpio_pin_configure_dt(&gpio3, GPIO_DISCONNECTED);
 
@@ -139,37 +139,25 @@ void buckboost(void)
 	}
 
 	/* configure interrupt and callback to receive data */
-	ret = uart_irq_callback_user_data_set(uart_dev, serial_cb, NULL);
-
-	if (ret < 0) {
-		if (ret == -ENOTSUP) {
-			printk("Interrupt-driven UART API support not enabled\n");
-		} else if (ret == -ENOSYS) {
-			printk("UART device does not support interrupt-driven API\n");
-		} else {
-			printk("Error setting UART callback: %d\n", ret);
-		}
-	}
-
+	uart_irq_callback_user_data_set(uart_dev, serial_cb, NULL);
 	uart_irq_rx_enable(uart_dev);
 
 	state = NONE;
 	int countdown = 1000;
 
-	// Msg msg = {.voltage = 1000, .current = 10, .last_value = 30.3};
-	// char uartbuf[32] = {};
-	// msg_encode(msg, uartbuf);
-	// print_uart((char *)&msg);
-
 	while (true) {
 		if (!countdown--) {
-			ret = hw_errors.errors();
+			hw_errors.check();
 			countdown = 1000;
 			print_voltages(adc, drive);
+
+			msg.voltage = adc.read_vout();
+			ret = msg_cobs_encode(msg, uartbuf);
+			print_uart(uartbuf, ret);
 		}
 
 		// Buck State
-		if (!ret && !gpio_pin_get_dt(&vin_detect)) {
+		if (!hw_errors.get() && !gpio_pin_get_dt(&vin_detect)) {
 			if (state != BUCK) {
 				state = BUCK;
 				printk("Entering Buck State\n");
@@ -183,7 +171,7 @@ void buckboost(void)
 			pwm_set_dt(&pwm, PERIOD, PERIOD * drive);
 		}
 		// Boost State (Charging)
-		else if (!ret && gpio_pin_get_dt(&vin_detect)) {
+		else if (!hw_errors.get() && gpio_pin_get_dt(&vin_detect)) {
 			if (state != BOOST) {
 				state = BOOST;
 				printk("Entering Boost State\n");
@@ -202,11 +190,12 @@ void buckboost(void)
 		else {
 			if (state != ERROR) {
 				state = ERROR;
-				printk("UPS In Error State: %d\n", ret);
+				printk("UPS In Error State: %d\n", hw_errors.get());
 			}
 			gpio_pin_set_dt(&pwm_en, false);
 			pwm_set_dt(&pwm, PERIOD, 0);
-			k_sleep(K_SECONDS(1U));
+			k_sleep(K_SECONDS(5U));
+			state = NONE;
 		}
 	}
 }

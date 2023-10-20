@@ -4,7 +4,7 @@
 #include <zephyr/drivers/uart.h>
 #include <zephyr/kernel.h>
 
-#include "../../common/msg.h"
+#include "msg.h"
 #include "screen.h"
 
 #define SLEEP_TIME_MS 5000
@@ -28,7 +28,8 @@ static const struct device *const uart_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_mcu_
 static char rx_buf[MSG_SIZE];
 static int rx_buf_pos = 0;
 
-struct Msg msg = {};
+struct k_msgq msgq;
+char msgq_buffer[sizeof(struct Msg) * 2];
 
 /*
  * Read characters from UART until line end is detected. Afterwards push the
@@ -45,35 +46,19 @@ void serial_cb(const struct device *dev, void *user_data)
 	if (!uart_irq_rx_ready(uart_dev)) {
 		return;
 	}
+
 	while (uart_fifo_read(uart_dev, &c, 1) == 1) {
-		printk("int: %d\n", c);
-		*((uint8_t *)(&msg) + rx_buf_pos++) = c;
-		if (rx_buf_pos >= sizeof(struct Msg)) {
-			// printk("thing: %d\n", msg.voltage);
-			// printk("thing: %d\n", msg.current);
-		}
+        if(!c && rx_buf_pos > sizeof(struct Msg)) {
+            // We have a complete packet
+            struct Msg msg = {};
+            msg_cobs_decode(rx_buf, &msg);
+            k_msgq_put(&msgq, &msg, K_NO_WAIT);
+            rx_buf_pos = 0;
+        }
+        else if(c) {
+            rx_buf[rx_buf_pos++] = c;
+        }
 	}
-
-	/* read until FIFO empty */
-	// while (uart_fifo_read(uart_dev, &c, 1) == 1) {
-	//     printk("%c", c);
-	//     if ((c == '\n' || c == '\r') && rx_buf_pos > 0) {
-	//         /* terminate string */
-	//         rx_buf[rx_buf_pos] = '\0';
-
-	//         /* if queue is full, message is silently dropped */
-	//         k_msgq_put(&uart_msgq, &rx_buf, K_NO_WAIT);
-
-	//         printk("rx_buf: %s\n", rx_buf);
-
-	//         /* reset the buffer (it was copied to the msgq) */
-	//         rx_buf_pos = 0;
-	//     } else if (rx_buf_pos < (sizeof(rx_buf) - 1)) {
-	//         printk("Add \n");
-	//         rx_buf[rx_buf_pos++] = c;
-	//     }
-	//     /* else: characters beyond buffer size are dropped */
-	// }
 }
 
 void print_uart(char *buf)
@@ -89,12 +74,15 @@ int main(void)
 {
 	int ret;
 	char tx_buf[MSG_SIZE];
+    struct Msg msg = {};
 
 	printf("Starting Up!\n");
 
 	if (!gpio_is_ready_dt(&led)) {
 		return 0;
 	}
+
+    k_msgq_init(&msgq, msgq_buffer, sizeof(struct Msg), 2);
 
 	screen_init();
 	gpio_pin_configure_dt(&led, GPIO_OUTPUT_INACTIVE);
@@ -107,23 +95,13 @@ int main(void)
 
 	/* configure interrupt and callback to receive data */
 	ret = uart_irq_callback_user_data_set(uart_dev, serial_cb, NULL);
-
-	if (ret < 0) {
-		if (ret == -ENOTSUP) {
-			printk("Interrupt-driven UART API support not enabled\n");
-		} else if (ret == -ENOSYS) {
-			printk("UART device does not support interrupt-driven API\n");
-		} else {
-			printk("Error setting UART callback: %d\n", ret);
-		}
-		return 0;
-	}
-
 	uart_irq_rx_enable(uart_dev);
-	screen_draw();
-	// print_uart("Testing");
 
 	while (1) {
+        if(!k_msgq_get(&msgq, &msg, K_MSEC(10))) {
+	        screen_draw(msg);
+        }
+
 		gpio_pin_toggle_dt(&led);
 
 		if (!k_msgq_get(&uart_msgq, &tx_buf, K_NO_WAIT)) {
