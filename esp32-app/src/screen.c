@@ -63,9 +63,13 @@ int screen_init()
 int screen_draw(struct Msg msg)
 {
 	memset(buf, 0x00, sizeof(buf));
-	sprintf(buf, "Vo: %.2fV", (float)msg.voltage/1000);
 	cfb_framebuffer_clear(display, true);
+
+	sprintf(buf, "Vo: %.2fV", (float)msg.vout/1000);
 	cfb_draw_text(display, buf, 0, 0);
+	sprintf(buf, "Vbat: %.2fV", (float)msg.vbat/1000);
+	cfb_draw_text(display, buf, 0, 20);
+
 	cfb_framebuffer_finalize(display);
 	// cfb_invert_area(display, 0, 0, 128, 64);
 }

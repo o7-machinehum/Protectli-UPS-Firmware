@@ -111,7 +111,7 @@ void buckboost(void)
 	float drive;
 	float vout = 0, vbat = 0;
 	char uartbuf[64] = {};
-	Msg msg = {.voltage = 1120, .current = 1230};
+	Msg msg = {.vout = 0, .vbat = 0};
 
 	printk("~~~ Protectli UPS ~~~\n");
 
@@ -155,7 +155,8 @@ void buckboost(void)
 			countdown = 1000;
 			print_voltages(adc, drive);
 
-			msg.voltage = adc.get_vout();
+			msg.vout = adc.get_vout();
+			msg.vbat = adc.get_vbat();
 			ret = msg_cobs_encode(msg, uartbuf);
 			print_uart(uartbuf, ret);
 		}

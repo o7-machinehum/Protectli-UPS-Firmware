@@ -1,8 +1,8 @@
 #ifndef MSG_H
 #define MSG_H
 struct Msg {
-	uint16_t voltage;
-	uint16_t current;
+	uint16_t vout;
+	uint16_t vbat;
 	uint8_t pad[2];
 };
 
