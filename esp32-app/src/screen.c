@@ -4,6 +4,7 @@
 
 #include "msg.h"
 #include <string.h>
+#include <stdio.h>
 
 const struct device *display;
 char buf[256] = {};
@@ -62,7 +63,7 @@ int screen_init()
 int screen_draw(struct Msg msg)
 {
 	memset(buf, 0x00, sizeof(buf));
-	sprintf(buf, "Vo: %d", msg.voltage);
+	sprintf(buf, "Vo: %.2fV", (float)msg.voltage/1000);
 	cfb_framebuffer_clear(display, true);
 	cfb_draw_text(display, buf, 0, 0);
 	cfb_framebuffer_finalize(display);
