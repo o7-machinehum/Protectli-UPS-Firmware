@@ -38,21 +38,22 @@ int screen_init()
 	ppt = cfb_get_display_parameter(display, CFB_DISPLAY_PPT);
 
 	for (int idx = 0; idx < 42; idx++) {
-		if (cfb_get_font_size(display, idx, &font_width, &font_height)) {
+		if (cfb_get_font_size(display, idx, &font_width,
+				      &font_height)) {
 			break;
 		}
 		if (font_height == 16) {
 			cfb_framebuffer_set_font(display, idx);
 		}
 
-		printk("font width %d, font height %d\n", font_width, font_height);
+		printk("font width %d, font height %d\n", font_width,
+		       font_height);
 	}
 
 	printk("x_res %d, y_res %d, ppt %d, rows %d, cols %d\n",
 	       cfb_get_display_parameter(display, CFB_DISPLAY_WIDTH),
 	       cfb_get_display_parameter(display, CFB_DISPLAY_HEIGH), ppt, rows,
 	       cfb_get_display_parameter(display, CFB_DISPLAY_COLS));
-
 
 	return 0;
 }

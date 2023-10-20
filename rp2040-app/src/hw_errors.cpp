@@ -14,14 +14,16 @@ static const struct gpio_dt_spec batt_ov_led =
 	GPIO_DT_SPEC_GET(DT_ALIAS(batt_overvoltage_led), gpios);
 
 /* Input Signals from HW */
-static const struct gpio_dt_spec load_oc = GPIO_DT_SPEC_GET(DT_NODELABEL(load_overcurrent), gpios);
+static const struct gpio_dt_spec load_oc =
+	GPIO_DT_SPEC_GET(DT_NODELABEL(load_overcurrent), gpios);
 
-static const struct gpio_dt_spec batt_oc = GPIO_DT_SPEC_GET(DT_NODELABEL(batt_overcurrent), gpios);
+static const struct gpio_dt_spec batt_oc =
+	GPIO_DT_SPEC_GET(DT_NODELABEL(batt_overcurrent), gpios);
 
-static const struct gpio_dt_spec batt_ov = GPIO_DT_SPEC_GET(DT_NODELABEL(batt_overvoltage), gpios);
+static const struct gpio_dt_spec batt_ov =
+	GPIO_DT_SPEC_GET(DT_NODELABEL(batt_overvoltage), gpios);
 
-HwErrors::HwErrors()
-:last_error_code(0), error_code(0)
+HwErrors::HwErrors() : last_error_code(0), error_code(0)
 {
 	gpio_pin_configure_dt(&load_oc_led, GPIO_OUTPUT_INACTIVE);
 	gpio_pin_configure_dt(&batt_oc_led, GPIO_OUTPUT_INACTIVE);
@@ -69,4 +71,3 @@ uint8_t HwErrors::check(void)
 
 	return error_code;
 }
-

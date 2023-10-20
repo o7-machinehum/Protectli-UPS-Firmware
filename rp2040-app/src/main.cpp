@@ -23,19 +23,26 @@ K_MSGQ_DEFINE(uart_msgq, MSG_SIZE, 10, 4);
 
 static const struct pwm_dt_spec pwm = PWM_DT_SPEC_GET(DT_ALIAS(pwm_0));
 
-static const struct gpio_dt_spec pwm_en = GPIO_DT_SPEC_GET(DT_ALIAS(pwm_en), gpios);
+static const struct gpio_dt_spec pwm_en =
+	GPIO_DT_SPEC_GET(DT_ALIAS(pwm_en), gpios);
 
-static const struct gpio_dt_spec pwm_skip = GPIO_DT_SPEC_GET(DT_ALIAS(pwm_skip), gpios);
+static const struct gpio_dt_spec pwm_skip =
+	GPIO_DT_SPEC_GET(DT_ALIAS(pwm_skip), gpios);
 
-static const struct gpio_dt_spec vin_detect = GPIO_DT_SPEC_GET(DT_ALIAS(vin_detect), gpios);
+static const struct gpio_dt_spec vin_detect =
+	GPIO_DT_SPEC_GET(DT_ALIAS(vin_detect), gpios);
 
-static const struct gpio_dt_spec pack_boot = GPIO_DT_SPEC_GET(DT_ALIAS(pack_boot), gpios);
+static const struct gpio_dt_spec pack_boot =
+	GPIO_DT_SPEC_GET(DT_ALIAS(pack_boot), gpios);
 
-static const struct gpio_dt_spec gpio2 = GPIO_DT_SPEC_GET(DT_ALIAS(gpio_2), gpios);
+static const struct gpio_dt_spec gpio2 =
+	GPIO_DT_SPEC_GET(DT_ALIAS(gpio_2), gpios);
 
-static const struct gpio_dt_spec gpio3 = GPIO_DT_SPEC_GET(DT_ALIAS(gpio_3), gpios);
+static const struct gpio_dt_spec gpio3 =
+	GPIO_DT_SPEC_GET(DT_ALIAS(gpio_3), gpios);
 
-static const struct device *const uart_dev = DEVICE_DT_GET(DT_CHOSEN(zephyr_mcu_uart));
+static const struct device *const uart_dev =
+	DEVICE_DT_GET(DT_CHOSEN(zephyr_mcu_uart));
 
 void print_voltages(Adc adc, float drive)
 {
@@ -111,9 +118,7 @@ void buckboost(void)
 	HwErrors hw_errors;
 	Pid buck_pid(12.0, 0.03, 0.0001, 0.0);
 
-	Battery battery = Battery()
-		.setVoltage(16.7)
-		.setCurrent(800.0);
+	Battery battery = Battery().setVoltage(16.7).setCurrent(800.0);
 
 	battery.setVoltage(16.7);
 
@@ -182,7 +187,8 @@ void buckboost(void)
 #endif
 			}
 
-			drive = battery.compute_drive(adc.read_vbat(), adc.read_ibat());
+			drive = battery.compute_drive(adc.read_vbat(),
+						      adc.read_ibat());
 			pwm_set_dt(&pwm, PERIOD, PERIOD * drive);
 			gpio_pin_set_dt(&pwm_en, true);
 		}
@@ -190,7 +196,8 @@ void buckboost(void)
 		else {
 			if (state != ERROR) {
 				state = ERROR;
-				printk("UPS In Error State: %d\n", hw_errors.get());
+				printk("UPS In Error State: %d\n",
+				       hw_errors.get());
 			}
 			gpio_pin_set_dt(&pwm_en, false);
 			pwm_set_dt(&pwm, PERIOD, 0);

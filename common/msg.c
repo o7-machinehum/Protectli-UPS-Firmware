@@ -4,8 +4,9 @@
 #include "msg.h"
 
 // https://blog.mbedded.ninja/programming/serialization-formats/consistent-overhead-byte-stuffing-cobs/
-// Please note this cobs encoding and decoding is quite limited. If the packet is over a certain side
-// there will be issues, and it doesn't check buffer lengths.
+// Please note this cobs encoding and decoding is quite limited. If the packet
+// is over a certain side there will be issues, and it doesn't check buffer
+// lengths.
 uint16_t msg_cobs_encode(struct Msg msg, char *buf)
 {
 	uint8_t *ptr = (uint8_t *)(&msg);

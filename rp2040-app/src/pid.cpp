@@ -40,7 +40,6 @@ float Pid::compute(float actual)
 		drive = 0.02;
 	}
 
-
 	e_prev = e;
 	t_prev = t;
 	return drive;
