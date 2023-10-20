@@ -108,9 +108,9 @@ int main(void)
 
 		gpio_pin_toggle_dt(&led);
 
-		if (!k_msgq_get(&uart_msgq, &tx_buf, K_NO_WAIT)) {
-			printk("Data: %s", tx_buf);
-		}
+		// if (!k_msgq_get(&uart_msgq, &tx_buf, K_NO_WAIT)) {
+		// 	printk("Data: %s", tx_buf);
+		// }
 
 		k_sleep(K_MSEC(100U));
 	}

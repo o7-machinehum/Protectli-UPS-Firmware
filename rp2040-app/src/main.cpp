@@ -120,8 +120,6 @@ void buckboost(void)
 
 	Battery battery = Battery().setVoltage(16.7).setCurrent(800.0);
 
-	battery.setVoltage(16.7);
-
 	gpio_pin_configure_dt(&pwm_en, GPIO_OUTPUT_INACTIVE);
 	gpio_pin_configure_dt(&pack_boot, GPIO_OUTPUT);
 	gpio_pin_configure_dt(&pwm_skip, GPIO_OUTPUT_ACTIVE);

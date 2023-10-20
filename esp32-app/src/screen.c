@@ -32,7 +32,6 @@ int screen_init()
 		return 0;
 	}
 
-	cfb_framebuffer_clear(display, true);
 	display_blanking_off(display);
 	rows = cfb_get_display_parameter(display, CFB_DISPLAY_ROWS);
 	ppt = cfb_get_display_parameter(display, CFB_DISPLAY_PPT);
@@ -55,23 +54,17 @@ int screen_init()
 	       cfb_get_display_parameter(display, CFB_DISPLAY_HEIGH), ppt, rows,
 	       cfb_get_display_parameter(display, CFB_DISPLAY_COLS));
 
-	return 0;
-}
 
-int screen_set_font()
-{
+	cfb_framebuffer_invert(display);
+	return 0;
 }
 
 int screen_draw(struct Msg msg)
 {
 	memset(buf, 0x00, sizeof(buf));
-	sprintf(buf, "Vout: %d", msg.voltage);
+	sprintf(buf, "Vo: %d", msg.voltage);
 	cfb_framebuffer_clear(display, true);
-
 	cfb_draw_text(display, buf, 0, 0);
-	// cfb_draw_rect(display, &start, &end);
-
 	cfb_framebuffer_finalize(display);
-	// cfb_invert_area(display, 0, 0, 100, 64);
-	// printk("%d", display->buf[0]);
+	// cfb_invert_area(display, 0, 0, 128, 64);
 }
