@@ -46,10 +46,10 @@ static const struct device *const uart_dev =
 
 void print_voltages(Adc adc, float drive)
 {
-	printk("Vout : %d mV\t", adc.read_vout());
-	printk("Vbat : %d mV\t", adc.read_vbat());
-	printk("Iout : %d mA\t", adc.read_iout());
-	printk("Ibat : %d mA\t", adc.read_ibat());
+	printk("Vout : %d mV\t", adc.get_vout());
+	printk("Vbat : %d mV\t", adc.get_vbat());
+	printk("Iout : %d mA\t", adc.get_iout());
+	printk("Ibat : %d mA\t", adc.get_ibat());
 	printk("Drve : %f\n", drive);
 }
 
@@ -151,12 +151,13 @@ void buckboost(void)
 	int countdown = 1000;
 
 	while (true) {
+		adc.read_all();
 		if (!countdown--) {
 			hw_errors.check();
 			countdown = 1000;
 			print_voltages(adc, drive);
 
-			msg.voltage = adc.read_vout();
+			msg.voltage = adc.get_vout();
 			ret = msg_cobs_encode(msg, uartbuf);
 			print_uart(uartbuf, ret);
 		}
@@ -167,7 +168,7 @@ void buckboost(void)
 				state = BUCK;
 				printk("Entering Buck State\n");
 			}
-			vout = adc.read_vout();
+			vout = adc.get_vout();
 			vout = vout / 1000;
 			buck_pid.compute(vout);
 			drive = buck_pid.get_duc();
@@ -187,8 +188,8 @@ void buckboost(void)
 #endif
 			}
 
-			drive = battery.compute_drive(adc.read_vbat(),
-						      adc.read_ibat());
+			drive = battery.compute_drive(adc.get_vbat(),
+						      adc.get_ibat());
 			pwm_set_dt(&pwm, PERIOD, PERIOD * drive);
 			gpio_pin_set_dt(&pwm_en, true);
 		}

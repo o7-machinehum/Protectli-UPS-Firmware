@@ -14,7 +14,8 @@ static uint16_t buf;
 static const struct adc_dt_spec adc_channels[] = {DT_FOREACH_PROP_ELEM(
 	DT_PATH(zephyr_user), io_channels, DT_SPEC_AND_COMMA)};
 
-Adc::Adc() : num_chan(ARRAY_SIZE(adc_channels))
+Adc::Adc()
+	: num_chan(ARRAY_SIZE(adc_channels)), vout(0), vbat(0), iout(0), ibat(0)
 {
 	int err;
 
@@ -75,28 +76,40 @@ int Adc::read(size_t i)
 	return val_mv;
 }
 
-int Adc::read_vout()
+int Adc::sample_vout()
 {
 	// (R4 + R6) / R6
 	// (1e6 + 240e3) / 240e3 = 5.1666
-	return read(0) * 5.1666;
+	vout = read(0) * 5.1666;
+	return vout;
 }
 
-int Adc::read_vbat()
+int Adc::sample_vbat()
 {
 	// (R7 + R8) / R8
 	// (100e3 + 7.32e3) / 7.32e3 = 14.6612
-	return read(1) * 14.6612;
+	vbat = read(1) * 14.6612;
+	return vbat;
 }
 
-int Adc::read_iout()
+int Adc::sample_iout()
 {
 	// I = ((V / R5) / U5_Gain)
-	return (read(2) / 5e-3) / 20;
+	iout = (read(2) / 5e-3) / 20;
+	return iout;
 }
 
-int Adc::read_ibat()
+int Adc::sample_ibat()
 {
 	// I = ((V / R2) / U21_Gain)
-	return (read(3) / 5e-3) / 200;
+	ibat = (read(3) / 5e-3) / 200;
+	return ibat;
+}
+
+void Adc::read_all()
+{
+	sample_vout();
+	sample_vbat();
+	sample_iout();
+	sample_ibat();
 }
