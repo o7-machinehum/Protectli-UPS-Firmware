@@ -1,5 +1,6 @@
 #include "screen.h"
 #include "protectli_logo.h"
+#include "fw_version.h"
 #include <zephyr/drivers/display.h>
 #include <zephyr/display/cfb.h>
 
@@ -72,7 +73,7 @@ int screen_draw(struct Msg msg)
 	// cfb_draw_text(display, buf, 0, 20);
 
 	draw_logo(&display);
-	sprintf(buf, "R1 SN: 123");
+	sprintf(buf, "R1 FW: %d.%d", FW_VERSION, FW_SUBVERSION);
 	cfb_draw_text(display, buf, 0, 50);
 
 
