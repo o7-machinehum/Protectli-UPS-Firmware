@@ -1,4 +1,5 @@
 #include "screen.h"
+#include "protectli_logo.h"
 #include <zephyr/drivers/display.h>
 #include <zephyr/display/cfb.h>
 
@@ -65,10 +66,12 @@ int screen_draw(struct Msg msg)
 	memset(buf, 0x00, sizeof(buf));
 	cfb_framebuffer_clear(display, true);
 
-	sprintf(buf, "Vo: %.2fV", (float)msg.vout/1000);
-	cfb_draw_text(display, buf, 0, 0);
-	sprintf(buf, "Vbat: %.2fV", (float)msg.vbat/1000);
-	cfb_draw_text(display, buf, 0, 20);
+	// sprintf(buf, "Vo: %.2fV", (float)msg.vout/1000);
+	// cfb_draw_text(display, buf, 0, 0);
+	// sprintf(buf, "Vbat: %.2fV", (float)msg.vbat/1000);
+	// cfb_draw_text(display, buf, 0, 20);
+
+	draw_logo(&display);
 
 	cfb_framebuffer_finalize(display);
 	// cfb_invert_area(display, 0, 0, 128, 64);
