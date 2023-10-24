@@ -36,6 +36,9 @@ static int rx_buf_pos = 0;
 struct k_msgq msgq;
 char msgq_buffer[sizeof(struct Msg) * 2];
 
+K_THREAD_STACK_DEFINE(screen_thd_stack_area, SCREEN_THD_STACK_SIZE);
+struct k_thread screen_thd_data;
+
 /*
  * Read characters from UART until line end is detected. Afterwards push the
  * data to the message queue.
@@ -78,7 +81,6 @@ int main(void)
 {
 	int ret;
 	char tx_buf[MSG_SIZE];
-	struct Msg msg = {};
 
 	printf("Starting Up!\n");
 
@@ -88,7 +90,6 @@ int main(void)
 
 	k_msgq_init(&msgq, msgq_buffer, sizeof(struct Msg), 2);
 
-	screen_init();
 	gpio_pin_configure_dt(&led, GPIO_OUTPUT_INACTIVE);
 	gpio_pin_configure_dt(&relay1, GPIO_OUTPUT_ACTIVE);
 
@@ -101,17 +102,14 @@ int main(void)
 	ret = uart_irq_callback_user_data_set(uart_dev, serial_cb, NULL);
 	uart_irq_rx_enable(uart_dev);
 
+    k_tid_t my_tid = k_thread_create(&screen_thd_data, screen_thd_stack_area,
+        K_THREAD_STACK_SIZEOF(screen_thd_stack_area),
+        screen_thread,
+        NULL, NULL, NULL,
+        SCREEN_THD_PRIORITY, 0, K_NO_WAIT);
+
 	while (1) {
-		if (!k_msgq_get(&msgq, &msg, K_MSEC(10))) {
-			screen_draw(msg);
-		}
-
 		gpio_pin_toggle_dt(&led);
-
-		// if (!k_msgq_get(&uart_msgq, &tx_buf, K_NO_WAIT)) {
-		// 	printk("Data: %s", tx_buf);
-		// }
-
 		k_sleep(K_MSEC(100U));
 	}
 	return 0;

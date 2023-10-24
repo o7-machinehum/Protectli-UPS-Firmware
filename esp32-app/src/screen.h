@@ -1,3 +1,4 @@
-int screen_init();
-int screen_set_font();
-int screen_draw();
+#define SCREEN_THD_STACK_SIZE 500
+#define SCREEN_THD_PRIORITY 5
+
+void screen_thread(void *, void *, void *);

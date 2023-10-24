@@ -1,15 +1,18 @@
-#include "screen.h"
-#include "protectli_logo.h"
-#include "fw_version.h"
+#include <zephyr/kernel.h>
 #include <zephyr/drivers/display.h>
 #include <zephyr/display/cfb.h>
 
+#include "screen.h"
+#include "protectli_logo.h"
+#include "fw_version.h"
 #include "msg.h"
+
 #include <string.h>
 #include <stdio.h>
 
 const struct device *display;
 char buf[256] = {};
+extern struct k_msgq msgq;
 
 int screen_init()
 {
@@ -79,4 +82,16 @@ int screen_draw(struct Msg msg)
 
 	cfb_framebuffer_finalize(display);
 	// cfb_invert_area(display, 0, 0, 128, 64);
+}
+
+void screen_thread(void *, void *, void *) {
+	screen_init();
+	while(true) {
+		struct Msg msg = {};
+
+		if (!k_msgq_get(&msgq, &msg, K_MSEC(10))) {
+			screen_draw(msg);
+		}
+		k_sleep(K_MSEC(1000U));
+	}
 }
