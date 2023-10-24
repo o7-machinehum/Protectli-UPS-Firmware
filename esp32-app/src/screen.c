@@ -72,6 +72,9 @@ int screen_draw(struct Msg msg)
 	// cfb_draw_text(display, buf, 0, 20);
 
 	draw_logo(&display);
+	sprintf(buf, "R1 SN: 123");
+	cfb_draw_text(display, buf, 0, 50);
+
 
 	cfb_framebuffer_finalize(display);
 	// cfb_invert_area(display, 0, 0, 128, 64);

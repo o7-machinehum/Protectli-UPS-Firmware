@@ -2,7 +2,7 @@ from PIL import Image
 from numpy import asarray
 
 fname = "../esp32-app/src/protectli_logo.h"
-image_name = "logo_little.png"
+image_name = "logo_little_2.png"
 
 image = Image.open(image_name)
 data = asarray(image.convert("1"))
