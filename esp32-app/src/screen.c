@@ -14,7 +14,7 @@ const struct device *display;
 char buf[256] = {};
 extern struct k_msgq msgq;
 
-int screen_init()
+int screen_init(void)
 {
 	uint16_t rows;
 	uint8_t ppt;
@@ -65,12 +65,43 @@ int screen_init()
 	return 0;
 }
 
+void screen_draw_battery()
+{
+	struct cfb_position p1, p2;
+	p1.x = 98;
+	p1.y = 50;
+	p2.x = 120;
+	p2.y = 60;
+	cfb_draw_rect(display, &p1, &p2);
+	p1.x = 121;
+	p1.y = 52;
+	p2.x = 124;
+	p2.y = 58;
+	cfb_draw_rect(display, &p1, &p2);
+}
+
+// Capacity 0 -> 100
+void screen_fill_battery(int capacity)
+{
+	struct cfb_position p1, p2;
+	capacity = capacity * 0.22;
+	p1.y = 50;
+	p2.y = 60;
+	for(int i = 0 ; i <= 22 ; i++) {
+		if(capacity > i) {
+			p1.x = 98 + i;
+			p2.x = 98 + i;
+			cfb_draw_line(display, &p1, &p2);
+		}
+	}
+}
+
 void screen_draw_intro(struct Msg msg)
 {
 	memset(buf, 0x00, sizeof(buf));
 	cfb_framebuffer_clear(display, true);
 
-	draw_logo(&display);
+	draw_logo(display);
 	sprintf(buf, "R1 FW: %d.%d", FW_VERSION, FW_SUBVERSION);
 	cfb_draw_text(display, buf, 0, 50);
 
@@ -86,6 +117,21 @@ void screen_draw_vout(struct Msg msg)
 	cfb_draw_text(display, buf, 0, 0);
 	sprintf(buf, "Iout: %.1fA", (float)msg.iout/1000);
 	cfb_draw_text(display, buf, 0, 20);
+	screen_draw_battery();
+	screen_fill_battery(msg.gas);
+
+	cfb_framebuffer_finalize(display);
+}
+
+void screen_draw_error()
+{
+	memset(buf, 0x00, sizeof(buf));
+	cfb_framebuffer_clear(display, true);
+
+	sprintf(buf, "Error! No msg");
+	cfb_draw_text(display, buf, 0, 0);
+	sprintf(buf, "from RP2040!");
+	cfb_draw_text(display, buf, 0, 20);
 
 	cfb_framebuffer_finalize(display);
 }
@@ -99,24 +145,25 @@ void screen_draw_vbat(struct Msg msg)
 	cfb_draw_text(display, buf, 0, 0);
 	sprintf(buf, "Ibat: %.1fA", (float)msg.ibat/1000);
 	cfb_draw_text(display, buf, 0, 20);
+	screen_draw_battery();
+	screen_fill_battery(msg.gas);
 
 	cfb_framebuffer_finalize(display);
 }
 
 void screen_thread(void *, void *, void *) {
 	int ret = 0;
-	screen_init();
-	enum screen_state state = INTRO;
+	enum screen_state state = VOUT; // INTRO;
 
 	while(true) {
 		struct Msg msg = {};
-		ret = k_msgq_get(&msgq, &msg, K_MSEC(100));
+		ret = k_msgq_get(&msgq, &msg, K_MSEC(1000));
 
 		if(ret) {
-			state = ERR;
+			screen_draw_error();
+			k_sleep(K_MSEC(5000U));
 		}
-
-		if(state == INTRO) {
+		else if(state == INTRO) {
 			screen_draw_intro(msg);
 			k_sleep(K_MSEC(5000U));
 			state = VBAT;
