@@ -95,7 +95,7 @@ void screen_fill_battery(int capacity)
 	}
 }
 
-void screen_draw_intro(struct Msg msg)
+void screen_draw_intro()
 {
 	memset(buf, 0x00, sizeof(buf));
 	cfb_framebuffer_clear(display, true);
@@ -140,7 +140,7 @@ void screen_draw_vout(struct Msg msg)
 
 	sprintf(buf, "Vout: %.2fV", (float)msg.vout / 1000);
 	cfb_draw_text(display, buf, 0, 0);
-	sprintf(buf, "Iout: %.1fA", (float)msg.iout / 1000);
+	sprintf(buf, "Idis: %.1fA", (float)msg.iout / 1000);
 	cfb_draw_text(display, buf, 0, 20);
 	screen_draw_banner(msg);
 
@@ -154,7 +154,7 @@ void screen_draw_vbat(struct Msg msg)
 
 	sprintf(buf, "Vbat: %.2fV", (float)msg.vbat / 1000);
 	cfb_draw_text(display, buf, 0, 0);
-	sprintf(buf, "Ibat: %.1fA", (float)msg.ibat / 1000);
+	sprintf(buf, "Ichg: %.1fA", (float)msg.ibat / 1000);
 	cfb_draw_text(display, buf, 0, 20);
 	screen_draw_banner(msg);
 
@@ -165,18 +165,17 @@ void screen_thread(void *, void *, void *)
 {
 	int ret = 0;
 	enum screen_state state = INTRO;
+	screen_draw_intro();
+	k_sleep(K_MSEC(5000U));
+	state = VBAT;
 
 	while (true) {
 		struct Msg msg = {};
 		ret = k_msgq_get(&msgq, &msg, K_MSEC(1000));
 
-		if (ret) {
+		if (ret != 0) {
 			screen_draw_error();
 			k_sleep(K_MSEC(5000U));
-		} else if (state == INTRO) {
-			screen_draw_intro(msg);
-			k_sleep(K_MSEC(5000U));
-			state = VBAT;
 		} else if (state == VBAT) {
 			screen_draw_vbat(msg);
 			k_sleep(K_MSEC(3000U));
