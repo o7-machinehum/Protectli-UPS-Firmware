@@ -157,6 +157,9 @@ void buckboost(void)
 
 			msg.vout = adc.get_vout();
 			msg.vbat = adc.get_vbat();
+			msg.iout = adc.get_iout();
+			msg.ibat = adc.get_ibat();
+			ret = msg_cobs_encode(msg, uartbuf);
 			ret = msg_cobs_encode(msg, uartbuf);
 			print_uart(uartbuf, ret);
 		}
