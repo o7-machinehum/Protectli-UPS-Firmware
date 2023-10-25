@@ -60,7 +60,6 @@ int screen_init(void)
 	       cfb_get_display_parameter(display, CFB_DISPLAY_HEIGH), ppt, rows,
 	       cfb_get_display_parameter(display, CFB_DISPLAY_COLS));
 
-
 	cfb_framebuffer_invert(display);
 	return 0;
 }
@@ -87,8 +86,8 @@ void screen_fill_battery(int capacity)
 	capacity = capacity * 0.22;
 	p1.y = 50;
 	p2.y = 60;
-	for(int i = 0 ; i <= 22 ; i++) {
-		if(capacity > i) {
+	for (int i = 0; i <= 22; i++) {
+		if (capacity > i) {
 			p1.x = 98 + i;
 			p2.x = 98 + i;
 			cfb_draw_line(display, &p1, &p2);
@@ -108,21 +107,6 @@ void screen_draw_intro(struct Msg msg)
 	cfb_framebuffer_finalize(display);
 }
 
-void screen_draw_vout(struct Msg msg)
-{
-	memset(buf, 0x00, sizeof(buf));
-	cfb_framebuffer_clear(display, true);
-
-	sprintf(buf, "Vout: %.2fV", (float)msg.vout/1000);
-	cfb_draw_text(display, buf, 0, 0);
-	sprintf(buf, "Iout: %.1fA", (float)msg.iout/1000);
-	cfb_draw_text(display, buf, 0, 20);
-	screen_draw_battery();
-	screen_fill_battery(msg.gas);
-
-	cfb_framebuffer_finalize(display);
-}
-
 void screen_draw_error()
 {
 	memset(buf, 0x00, sizeof(buf));
@@ -135,45 +119,69 @@ void screen_draw_error()
 
 	cfb_framebuffer_finalize(display);
 }
+void screen_draw_banner(struct Msg msg)
+{
+	memset(buf, 0x00, sizeof(buf));
+
+	screen_draw_battery();
+	screen_fill_battery(msg.gas);
+	if (msg.state == MSG_STATE_CHARGING) {
+		sprintf(buf, "Char");
+	} else {
+		sprintf(buf, "Dischar");
+	}
+	cfb_draw_text(display, buf, 0, 46);
+}
+
+void screen_draw_vout(struct Msg msg)
+{
+	memset(buf, 0x00, sizeof(buf));
+	cfb_framebuffer_clear(display, true);
+
+	sprintf(buf, "Vout: %.2fV", (float)msg.vout / 1000);
+	cfb_draw_text(display, buf, 0, 0);
+	sprintf(buf, "Iout: %.1fA", (float)msg.iout / 1000);
+	cfb_draw_text(display, buf, 0, 20);
+	screen_draw_banner(msg);
+
+	cfb_framebuffer_finalize(display);
+}
 
 void screen_draw_vbat(struct Msg msg)
 {
 	memset(buf, 0x00, sizeof(buf));
 	cfb_framebuffer_clear(display, true);
 
-	sprintf(buf, "Vbat: %.2fV", (float)msg.vbat/1000);
+	sprintf(buf, "Vbat: %.2fV", (float)msg.vbat / 1000);
 	cfb_draw_text(display, buf, 0, 0);
-	sprintf(buf, "Ibat: %.1fA", (float)msg.ibat/1000);
+	sprintf(buf, "Ibat: %.1fA", (float)msg.ibat / 1000);
 	cfb_draw_text(display, buf, 0, 20);
-	screen_draw_battery();
-	screen_fill_battery(msg.gas);
+	screen_draw_banner(msg);
 
 	cfb_framebuffer_finalize(display);
 }
 
-void screen_thread(void *, void *, void *) {
+void screen_thread(void *, void *, void *)
+{
 	int ret = 0;
-	enum screen_state state = VOUT; // INTRO;
+	enum screen_state state = INTRO;
 
-	while(true) {
+	while (true) {
 		struct Msg msg = {};
 		ret = k_msgq_get(&msgq, &msg, K_MSEC(1000));
 
-		if(ret) {
+		if (ret) {
 			screen_draw_error();
 			k_sleep(K_MSEC(5000U));
-		}
-		else if(state == INTRO) {
+		} else if (state == INTRO) {
 			screen_draw_intro(msg);
 			k_sleep(K_MSEC(5000U));
 			state = VBAT;
-		}
-		else if(state == VBAT) {
+		} else if (state == VBAT) {
 			screen_draw_vbat(msg);
 			k_sleep(K_MSEC(3000U));
 			state = VOUT;
-		}
-		else if(state == VOUT) {
+		} else if (state == VOUT) {
 			screen_draw_vout(msg);
 			k_sleep(K_MSEC(3000U));
 			state = VBAT;

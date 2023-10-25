@@ -14,6 +14,5 @@ int main()
 	len = msg_cobs_encode(m1, buff);
 	len = msg_cobs_decode(buff, &m2);
 
-    printf("%d, %d", m2.voltage, m2.current);
-
+	printf("%d, %d", m2.voltage, m2.current);
 }

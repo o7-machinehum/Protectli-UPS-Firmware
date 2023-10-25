@@ -169,6 +169,7 @@ void buckboost(void)
 			if (state != BUCK) {
 				state = BUCK;
 				printk("Entering Buck State\n");
+				msg.state = MSG_STATE_DISCHARGING;
 			}
 			vout = adc.get_vout();
 			vout = vout / 1000;
@@ -183,6 +184,7 @@ void buckboost(void)
 			if (state != BOOST) {
 				state = BOOST;
 				printk("Entering Boost State\n");
+				msg.state = MSG_STATE_CHARGING;
 #if defined(CONFIG_FORCE_PACK)
 				gpio_pin_set_dt(&pack_boot, true);
 				k_sleep(K_MSEC(100U));
@@ -199,6 +201,7 @@ void buckboost(void)
 		else {
 			if (state != ERROR) {
 				state = ERROR;
+				msg.state = MSG_STATE_ERROR;
 				printk("UPS In Error State: %d\n",
 				       hw_errors.get());
 			}

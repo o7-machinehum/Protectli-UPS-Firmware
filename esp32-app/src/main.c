@@ -60,7 +60,9 @@ void serial_cb(const struct device *dev, void *user_data)
 			// We have a complete packet
 			struct Msg msg = {};
 			msg_cobs_decode(rx_buf, &msg);
-			k_msgq_put(&msgq, &msg, K_NO_WAIT);
+			while (k_msgq_put(&msgq, &msg, K_NO_WAIT) != 0) {
+				k_msgq_purge(&msgq);
+			}
 			rx_buf_pos = 0;
 		} else if (c) {
 			rx_buf[rx_buf_pos++] = c;
@@ -104,11 +106,10 @@ int main(void)
 	ret = uart_irq_callback_user_data_set(uart_dev, serial_cb, NULL);
 	uart_irq_rx_enable(uart_dev);
 
-    k_tid_t my_tid = k_thread_create(&screen_thd_data, screen_thd_stack_area,
-        K_THREAD_STACK_SIZEOF(screen_thd_stack_area),
-        screen_thread,
-        NULL, NULL, NULL,
-        SCREEN_THD_PRIORITY, 0, K_NO_WAIT);
+	k_tid_t my_tid = k_thread_create(
+		&screen_thd_data, screen_thd_stack_area,
+		K_THREAD_STACK_SIZEOF(screen_thd_stack_area), screen_thread,
+		NULL, NULL, NULL, SCREEN_THD_PRIORITY, 0, K_NO_WAIT);
 
 	while (1) {
 		gpio_pin_toggle_dt(&led);
